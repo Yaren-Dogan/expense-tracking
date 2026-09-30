@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    environment:
+      POSTGRES_DB: expense_tracker
+      POSTGRES_USER: expense
+      # Local development only; production credentials come from a secret store.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-expense_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expense -d expense_tracker"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.Api
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=expense_tracker;Username=expense;Password=${POSTGRES_PASSWORD:-expense_dev}
+      Database__MigrateOnStartup: "true"
+      Clock__TimeZone: Europe/Istanbul
+    ports:
+      - "5080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      # The API waits for a healthy database and migrates on start; /health reports readiness.
+      - api
+
+volumes:
+  pgdata:

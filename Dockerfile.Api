@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Restore first so the package layer is cached until a project file changes.
+COPY Directory.Build.props ./
+COPY src/ExpenseTracker.Domain/*.csproj src/ExpenseTracker.Domain/
+COPY src/ExpenseTracker.Application/*.csproj src/ExpenseTracker.Application/
+COPY src/ExpenseTracker.Infrastructure/*.csproj src/ExpenseTracker.Infrastructure/
+COPY src/ExpenseTracker.Api/*.csproj src/ExpenseTracker.Api/
+RUN dotnet restore src/ExpenseTracker.Api/ExpenseTracker.Api.csproj
+
+COPY src/ src/
+RUN dotnet publish src/ExpenseTracker.Api/ExpenseTracker.Api.csproj -c Release -o /app --no-restore
+
+# Debian-based runtime: ships ICU and tzdata, which the app needs for Clock__TimeZone.
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app .
+USER $APP_UID
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "ExpenseTracker.Api.dll"]
