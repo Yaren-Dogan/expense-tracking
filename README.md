@@ -42,10 +42,20 @@ yapay zekâ özellikleri "servise ulaşılamıyor" der; uygulamanın geri kalan�
 
 Daha güçlü bir makinede daha iyi model: `CHAT_MODEL=qwen2.5:7b AGENT_MODE=Native docker compose up`.
 
+**Modeller Docker içinden inmiyorsa** (`ollama-models` loglarında sürekli `Error: EOF`): Ollama'yı doğrudan
+bilgisayara kur ve API'yi ona yönlendir.
+
+```powershell
+winget install -e --id Ollama.Ollama
+ollama pull qwen2.5:3b
+ollama pull bge-m3
+Set-Content .env "OLLAMA_URL=http://host.docker.internal:11434"
+docker compose up -d --build --scale ollama=0 --scale ollama-models=0
+```
+
 - Uygulama: http://localhost:8080
 - API: http://localhost:5080 (sağlık: `/health`)
 - Veritabanı paneli (Adminer): http://localhost:8081
-- Ollama (model sunucusu): http://localhost:11434
 
 ### Veritabanını görmek
 

@@ -36,9 +36,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # The API starts without the models; AI endpoints return 503 until they are downloaded.
-      ollama:
-        condition: service_started
 
   web:
     build: ./web
@@ -49,10 +46,10 @@ services:
       - api
 
   # Local LLM runtime. The first start downloads the models (~3 GB) through the ollama-models job below.
+  # Not published on the host: the API reaches it on the compose network, and port 11434 stays free
+  # for an Ollama installed directly on the host (see OLLAMA_URL above).
   ollama:
     image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
     volumes:
       - ollama:/root/.ollama
 
