@@ -60,8 +60,22 @@ services:
     image: ollama/ollama:latest
     environment:
       OLLAMA_HOST: ollama:11434
-    # Waits for the server, since depends_on only orders container starts.
-    entrypoint: ["/bin/sh", "-c", "until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull ${CHAT_MODEL:-qwen2.5:3b} && ollama pull bge-m3"]
+    # Waits for the server (depends_on only orders container starts), then pulls each model with retries:
+    # large downloads over home connections drop now and then, and Ollama resumes a partial pull.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until ollama list >/dev/null 2>&1; do sleep 1; done
+        for model in ${CHAT_MODEL:-qwen2.5:3b} bge-m3; do
+          for attempt in 1 2 3 4 5; do
+            ollama pull "$$model" && break
+            echo "Pull of $$model failed (attempt $$attempt/5), retrying in 5 s..."
+            sleep 5
+          done
+          ollama list | grep -q "^$${model%%:*}" || { echo "Could not download $$model"; exit 1; }
+        done
+        echo "Models ready."
     depends_on:
       - ollama
     restart: "no"
