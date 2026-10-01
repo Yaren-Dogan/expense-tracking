@@ -32,6 +32,15 @@ public sealed partial class ExpenseEmbeddingIndexer(
                 // Drain the backlog before waiting again.
                 while (await IndexBatchAsync(stoppingToken) > 0) { }
             }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                // Ollama is up but the model is not pulled yet (normal on first start): one line, no stack trace.
+                LogModelNotAvailable(logger, options.Value.EmbeddingModel);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is null)
+            {
+                LogModelServerUnreachable(logger, options.Value.Endpoint);
+            }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 LogIndexingFailed(logger, ex);
@@ -102,6 +111,14 @@ public sealed partial class ExpenseEmbeddingIndexer(
     [LoggerMessage(EventId = 3002, EventName = "IndexingFailed", Level = LogLevel.Warning,
         Message = "Embedding indexing failed; will retry on the next tick")]
     private static partial void LogIndexingFailed(ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 3004, EventName = "EmbeddingModelNotAvailable", Level = LogLevel.Warning,
+        Message = "Embedding model '{Model}' is not available in Ollama yet (still downloading?); will retry")]
+    private static partial void LogModelNotAvailable(ILogger logger, string model);
+
+    [LoggerMessage(EventId = 3005, EventName = "ModelServerUnreachable", Level = LogLevel.Warning,
+        Message = "Model server {Endpoint} is unreachable; will retry")]
+    private static partial void LogModelServerUnreachable(ILogger logger, string endpoint);
 
     [LoggerMessage(EventId = 3003, EventName = "ExpenseDeletedDuringIndexing", Level = LogLevel.Debug,
         Message = "An expense was deleted while being indexed; batch will be retried")]
