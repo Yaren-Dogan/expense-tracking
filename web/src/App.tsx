@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AddExpenseForm } from './components/AddExpenseForm'
+import { AssistantPanel } from './components/AssistantPanel'
 import { BudgetDialog } from './components/BudgetDialog'
 import { ExpenseList } from './components/ExpenseList'
 import { ForecastStrip } from './components/ForecastStrip'
@@ -46,6 +47,7 @@ export default function App() {
           <MonthForecastCard weather={weather} />
         </div>
         <div className="column">
+          <AssistantPanel today={dashboard.today} />
           <ExpenseList
             month={dashboard.month}
             expenses={dashboard.expenses}

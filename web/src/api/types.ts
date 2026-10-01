@@ -66,3 +66,20 @@ export interface Weather {
   lastSevenDays: DayWeather[]
   forecast: MonthForecast | null
 }
+
+export interface ParsedExpense {
+  amount: number
+  category: Category
+  note: string | null
+  spentOn: string
+}
+
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface AssistantReply {
+  reply: string
+  toolsUsed: string[]
+}

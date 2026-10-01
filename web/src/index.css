@@ -415,6 +415,115 @@ input {
   outline: 3px solid color-mix(in srgb, var(--primary) 55%, transparent);
 }
 
+/* ---------- AI: quick entry & assistant ---------- */
+
+.add-form-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.quick-entry {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-entry input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 45%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.quick-entry input:focus {
+  border-style: solid;
+  border-color: var(--primary);
+  outline: none;
+}
+
+.button-soft {
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  color: var(--primary);
+}
+
+.hint {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.assistant .hint {
+  margin-top: 4px;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestions .chip {
+  background: transparent;
+  text-align: left;
+}
+
+.chat {
+  display: grid;
+  gap: 8px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  line-height: 1.45;
+}
+
+.bubble p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.bubble-user {
+  justify-self: end;
+  border-bottom-right-radius: 4px;
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.bubble-assistant {
+  justify-self: start;
+  border-bottom-left-radius: 4px;
+  background: var(--bg);
+}
+
+.bubble-failed {
+  color: var(--danger);
+}
+
+.bubble-thinking {
+  color: var(--muted);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.bubble-tools {
+  margin-top: 6px !important;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.5; }
+}
+
 /* ---------- 7-day strip ---------- */
 
 .strip {
@@ -651,5 +760,9 @@ input {
   .hero,
   .allowance-fill {
     transition: none;
+  }
+
+  .bubble-thinking {
+    animation: none;
   }
 }

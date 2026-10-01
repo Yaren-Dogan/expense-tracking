@@ -1,5 +1,5 @@
 import { getUserId } from '../lib/userId'
-import type { Budget, Expense, NewExpense, Weather } from './types'
+import type { AssistantReply, Budget, ChatTurn, Expense, NewExpense, ParsedExpense, Weather } from './types'
 
 /** A failed API call. `fieldErrors` holds RFC 7807 validation errors keyed by camelCase field name. */
 export class ApiError extends Error {
@@ -61,6 +61,12 @@ export const api = {
       throw error
     }
   },
+
+  parseExpense: (text: string, today: string) =>
+    request<ParsedExpense>('/api/expenses/parse', { method: 'POST', body: JSON.stringify({ text, today }) }),
+
+  askAssistant: (messages: ChatTurn[], today: string) =>
+    request<AssistantReply>('/api/assistant/chat', { method: 'POST', body: JSON.stringify({ messages, today }) }),
 
   setBudget: (month: string, amount: number) =>
     request<Budget>(`/api/budgets/${month}`, { method: 'PUT', body: JSON.stringify({ amount }) }),

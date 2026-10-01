@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { ApiError } from '../api/client'
+import { ApiError, api } from '../api/client'
 import { CATEGORIES, type Category, type NewExpense } from '../api/types'
 import { parseAmount } from '../lib/format'
 import { CATEGORY_LABELS } from '../lib/weather'
@@ -21,6 +21,29 @@ export function AddExpenseForm({ today, onAdd }: Props) {
   // One key per intended expense: a double tap or a retry after a timeout reuses it, so the server
   // stores the expense once. A new key is minted only after a successful save.
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID())
+  const [sentence, setSentence] = useState('')
+  const [parsing, setParsing] = useState(false)
+  const [suggested, setSuggested] = useState(false)
+
+  // The model only suggests: it fills the form and the user still presses "Ekle" (human in the loop).
+  async function understand(event: FormEvent) {
+    event.preventDefault()
+    if (!sentence.trim()) return
+    setParsing(true)
+    setErrors({})
+    try {
+      const parsed = await api.parseExpense(sentence.trim(), today)
+      setAmount(String(parsed.amount).replace('.', ','))
+      setCategory(parsed.category)
+      setNote(parsed.note ?? '')
+      setSpentOn(parsed.spentOn)
+      setSuggested(true)
+    } catch (error) {
+      setErrors({ sentence: error instanceof Error ? error.message : 'Anlayamadım.' })
+    } finally {
+      setParsing(false)
+    }
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -37,6 +60,8 @@ export function AddExpenseForm({ today, onAdd }: Props) {
       setAmount('')
       setNote('')
       setSpentOn(today)
+      setSentence('')
+      setSuggested(false)
       setIdempotencyKey(crypto.randomUUID())
     } catch (error) {
       if (error instanceof ApiError && Object.keys(error.fieldErrors).length > 0) {
@@ -50,63 +75,87 @@ export function AddExpenseForm({ today, onAdd }: Props) {
   }
 
   return (
-    <form className="card add-form" onSubmit={submit} noValidate>
+    <section className="card add-form">
       <h2 className="card-title">Harcama ekle</h2>
 
-      <label className="amount-field">
-        <span className="visually-hidden">Tutar</span>
-        <span className="amount-prefix" aria-hidden="true">₺</span>
+      <form className="quick-entry" onSubmit={understand}>
+        <label className="visually-hidden" htmlFor="quick-entry">Cümleyle harcama ekle</label>
         <input
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder="0,00"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          aria-invalid={Boolean(errors.amount)}
-          aria-describedby={errors.amount ? 'amount-error' : undefined}
+          id="quick-entry"
+          value={sentence}
+          maxLength={300}
+          placeholder="Yaz gitsin: dün akşam kahveye 85 lira"
+          onChange={(e) => setSentence(e.target.value)}
+          aria-describedby="quick-entry-help"
         />
-      </label>
-      {errors.amount && <p id="amount-error" className="field-error">{errors.amount}</p>}
+        <button type="submit" className="button button-soft" disabled={parsing || !sentence.trim()}>
+          {parsing ? 'Düşünüyor…' : 'Anla'}
+        </button>
+      </form>
+      {errors.sentence ? (
+        <p className="field-error" role="alert">{errors.sentence}</p>
+      ) : (
+        <p id="quick-entry-help" className="hint">
+          {suggested ? 'Yapay zekâ formu doldurdu. Kontrol et ve Ekle’ye bas.' : 'Yapay zekâ cümleni forma çevirir, kaydetmeden önce sen onaylarsın.'}
+        </p>
+      )}
 
-      <fieldset className="chips">
-        <legend className="visually-hidden">Kategori</legend>
-        {CATEGORIES.map((c) => (
-          <label key={c} className="chip" data-selected={c === category}>
-            <input
-              type="radio"
-              name="category"
-              value={c}
-              checked={c === category}
-              onChange={() => setCategory(c)}
-            />
-            {CATEGORY_LABELS[c]}
-          </label>
-        ))}
-      </fieldset>
-      {errors.category && <p className="field-error">{errors.category}</p>}
-
-      <div className="row">
-        <label className="field grow">
-          <span className="field-label">Not</span>
+      <form className="add-form-fields" onSubmit={submit} noValidate>
+        <label className="amount-field">
+          <span className="visually-hidden">Tutar</span>
+          <span className="amount-prefix" aria-hidden="true">₺</span>
           <input
-            value={note}
-            maxLength={NOTE_MAX}
-            placeholder="Örn. öğle yemeği"
-            onChange={(e) => setNote(e.target.value)}
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder="0,00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            aria-invalid={Boolean(errors.amount)}
+            aria-describedby={errors.amount ? 'amount-error' : undefined}
           />
         </label>
-        <label className="field">
-          <span className="field-label">Tarih</span>
-          <input type="date" value={spentOn} max={today} onChange={(e) => setSpentOn(e.target.value)} />
-        </label>
-      </div>
-      {errors.note && <p className="field-error">{errors.note}</p>}
-      {errors.spentOn && <p className="field-error">{errors.spentOn}</p>}
-      {errors.form && <p className="field-error" role="alert">{errors.form}</p>}
+        {errors.amount && <p id="amount-error" className="field-error">{errors.amount}</p>}
 
-      <button type="submit" className="button button-primary" disabled={saving}>
-        {saving ? 'Kaydediliyor…' : 'Ekle'}
-      </button>
-    </form>
+        <fieldset className="chips">
+          <legend className="visually-hidden">Kategori</legend>
+          {CATEGORIES.map((c) => (
+            <label key={c} className="chip" data-selected={c === category}>
+              <input
+                type="radio"
+                name="category"
+                value={c}
+                checked={c === category}
+                onChange={() => setCategory(c)}
+              />
+              {CATEGORY_LABELS[c]}
+            </label>
+          ))}
+        </fieldset>
+        {errors.category && <p className="field-error">{errors.category}</p>}
+
+        <div className="row">
+          <label className="field grow">
+            <span className="field-label">Not</span>
+            <input
+              value={note}
+              maxLength={NOTE_MAX}
+              placeholder="Örn. öğle yemeği"
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="field-label">Tarih</span>
+            <input type="date" value={spentOn} max={today} onChange={(e) => setSpentOn(e.target.value)} />
+          </label>
+        </div>
+        {errors.note && <p className="field-error">{errors.note}</p>}
+        {errors.spentOn && <p className="field-error">{errors.spentOn}</p>}
+        {errors.form && <p className="field-error" role="alert">{errors.form}</p>}
+
+        <button type="submit" className="button button-primary" disabled={saving}>
+          {saving ? 'Kaydediliyor…' : 'Ekle'}
+        </button>
+      </form>
+    </section>
   )
 }
