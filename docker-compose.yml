@@ -38,5 +38,17 @@ services:
       # The API waits for a healthy database and migrates on start; /health reports readiness.
       - api
 
+  # Browser UI for looking at the database during development: http://localhost:8081
+  adminer:
+    image: adminer:4
+    # The image listens on [::] by default, which fails on hosts without IPv6.
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
 volumes:
   pgdata:

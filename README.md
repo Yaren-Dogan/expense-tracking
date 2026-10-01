@@ -25,6 +25,22 @@ docker compose up --build
 
 - Uygulama: http://localhost:8080
 - API: http://localhost:5080 (sağlık: `/health`)
+- Veritabanı paneli (Adminer): http://localhost:8081
+
+### Veritabanını görmek
+
+http://localhost:8081 adresinde şu bilgilerle giriş yap:
+
+| Alan | Değer |
+| --- | --- |
+| System | PostgreSQL |
+| Server | `postgres` |
+| Username | `expense` |
+| Password | `expense_dev` |
+| Database | `expense_tracker` |
+
+Tablolar: `expenses` (harcamalar), `budgets` (aylık bütçeler). Her kaydın `user_id` değeri,
+tarayıcıdaki `expense-tracker.user-id` (F12 → Application → Local Storage) ile eşleşir.
 
 ### Geliştirme
 
