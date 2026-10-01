@@ -1,3 +1,4 @@
+using ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
 using ExpenseTracker.Domain.Enums;
 
 namespace ExpenseTracker.Api.Contracts;
@@ -7,3 +8,7 @@ namespace ExpenseTracker.Api.Contracts;
 public sealed record CreateExpenseRequest(decimal Amount, ExpenseCategory Category, string? Note, DateOnly SpentOn);
 
 public sealed record SetBudgetRequest(decimal Amount);
+
+public sealed record ParseExpenseRequest(string Text, DateOnly? Today);
+
+public sealed record AssistantChatRequest(IReadOnlyList<ChatTurn> Messages, DateOnly? Today);

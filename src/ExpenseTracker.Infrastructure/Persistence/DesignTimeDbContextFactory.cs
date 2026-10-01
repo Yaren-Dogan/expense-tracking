@@ -10,7 +10,7 @@ internal sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<A
     public AppDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql("Host=localhost;Database=expense_tracker")
+            .UseNpgsql("Host=localhost;Database=expense_tracker", npgsql => npgsql.UseVector())
             .UseSnakeCaseNamingConvention()
             .Options;
 

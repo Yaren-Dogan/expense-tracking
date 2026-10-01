@@ -1,3 +1,4 @@
+using ExpenseTracker.Domain.Enums;
 using ExpenseTracker.Domain.Weather;
 using Microsoft.Extensions.Logging;
 
@@ -25,4 +26,17 @@ internal static partial class ApplicationLog
     [LoggerMessage(EventId = 1005, EventName = "WeatherCalculated", Level = LogLevel.Debug,
         Message = "Weather for user {UserId} on {Date}: {Condition}")]
     public static partial void WeatherCalculated(this ILogger logger, Guid userId, DateOnly date, WeatherCondition? condition);
+
+    [LoggerMessage(EventId = 1101, EventName = "ExpenseParsed", Level = LogLevel.Information,
+        Message = "Parsed expense as {Category} in {ElapsedMs} ms")]
+    public static partial void ExpenseParsed(this ILogger logger, ExpenseCategory category, long elapsedMs);
+
+    // Only the length is logged: the sentence itself is user content and stays out of logs.
+    [LoggerMessage(EventId = 1102, EventName = "ExpenseParseFailed", Level = LogLevel.Warning,
+        Message = "Model output for a {TextLength}-character sentence was unusable ({ElapsedMs} ms)")]
+    public static partial void ExpenseParseFailed(this ILogger logger, int textLength, long elapsedMs);
+
+    [LoggerMessage(EventId = 1201, EventName = "AssistantAnswered", Level = LogLevel.Information,
+        Message = "Assistant answered user {UserId} in {ElapsedMs} ms using tools [{Tools}]")]
+    public static partial void AssistantAnswered(this ILogger logger, Guid userId, long elapsedMs, string tools);
 }

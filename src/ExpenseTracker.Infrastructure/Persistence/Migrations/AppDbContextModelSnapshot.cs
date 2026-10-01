@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Pgvector;
 
 #nullable disable
 
@@ -20,6 +21,7 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ExpenseTracker.Domain.Entities.Budget", b =>
@@ -117,6 +119,56 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_expenses_user_id_spent_on");
 
                     b.ToTable("expenses", (string)null);
+                });
+
+            modelBuilder.Entity("ExpenseTracker.Infrastructure.Ai.ExpenseEmbedding", b =>
+                {
+                    b.Property<Guid>("ExpenseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("expense_id");
+
+                    b.Property<Vector>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("vector(1024)")
+                        .HasColumnName("embedding");
+
+                    b.Property<DateTimeOffset>("IndexedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("indexed_at");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("model");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("ExpenseId")
+                        .HasName("pk_expense_embeddings");
+
+                    b.HasIndex("Embedding")
+                        .HasDatabaseName("ix_expense_embeddings_embedding");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Embedding"), "hnsw");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Embedding"), new[] { "vector_cosine_ops" });
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_expense_embeddings_user_id");
+
+                    b.ToTable("expense_embeddings", (string)null);
+                });
+
+            modelBuilder.Entity("ExpenseTracker.Infrastructure.Ai.ExpenseEmbedding", b =>
+                {
+                    b.HasOne("ExpenseTracker.Domain.Entities.Expense", null)
+                        .WithOne()
+                        .HasForeignKey("ExpenseTracker.Infrastructure.Ai.ExpenseEmbedding", "ExpenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_expense_embeddings_expenses_expense_id");
                 });
 #pragma warning restore 612, 618
         }
