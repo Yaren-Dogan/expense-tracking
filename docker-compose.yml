@@ -25,7 +25,8 @@ services:
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=expense_tracker;Username=expense;Password=${POSTGRES_PASSWORD:-expense_dev}
       Database__MigrateOnStartup: "true"
       Clock__TimeZone: Europe/Istanbul
-      Ai__Endpoint: http://ollama:11434
+      # Override with OLLAMA_URL=http://host.docker.internal:11434 to use Ollama installed on the host instead.
+      Ai__Endpoint: ${OLLAMA_URL:-http://ollama:11434}
       Ai__ChatModel: ${CHAT_MODEL:-qwen2.5:3b}
       Ai__EmbeddingModel: bge-m3
       # Planned works with small local models; switch to Native for a capable model (e.g. qwen2.5:7b and up).
