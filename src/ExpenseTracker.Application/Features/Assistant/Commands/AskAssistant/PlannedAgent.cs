@@ -27,13 +27,14 @@ internal sealed class PlannedAgent(IChatClient chatClient, AssistantTools tools,
         Answer
     }
 
+    /// <summary>Unused fields come back as empty strings: no nullable types, so every provider accepts the schema.</summary>
     internal sealed record AgentStep(
         [property: Description("Bir sonraki adımın kısa gerekçesi")] string Reason,
         [property: Description("Çağrılacak araç ya da Answer")] AgentAction Action,
-        [property: Description("Başlangıç tarihi yyyy-MM-dd (GetSpendingByCategory, ListExpenses)")] string? From,
-        [property: Description("Bitiş tarihi yyyy-MM-dd (GetSpendingByCategory, ListExpenses)")] string? To,
-        [property: Description("Opsiyonel kategori (ListExpenses)")] string? Category,
-        [property: Description("Arama metni (SearchExpenses)")] string? Query);
+        [property: Description("Başlangıç tarihi yyyy-MM-dd (GetSpendingByCategory, ListExpenses), yoksa boş")] string From,
+        [property: Description("Bitiş tarihi yyyy-MM-dd (GetSpendingByCategory, ListExpenses), yoksa boş")] string To,
+        [property: Description("Opsiyonel kategori (ListExpenses), yoksa boş")] string Category,
+        [property: Description("Arama metni (SearchExpenses), yoksa boş")] string Query);
 
     private static readonly Dictionary<AgentAction, string> ToolNames = new()
     {
@@ -110,10 +111,12 @@ internal sealed class PlannedAgent(IChatClient chatClient, AssistantTools tools,
     {
         AgentAction.GetBudgetStatus => tools.GetBudgetStatusAsync(ct),
         AgentAction.GetSpendingByCategory => tools.GetSpendingByCategoryAsync(plan.From ?? "", plan.To ?? "", ct),
-        AgentAction.ListExpenses => tools.ListExpensesAsync(plan.From ?? "", plan.To ?? "", plan.Category, ct),
+        AgentAction.ListExpenses => tools.ListExpensesAsync(plan.From ?? "", plan.To ?? "", NullIfEmpty(plan.Category), ct),
         AgentAction.SearchExpenses => tools.SearchExpensesAsync(plan.Query ?? "", ct),
         _ => throw new ArgumentOutOfRangeException(nameof(plan), plan.Action, "Not a tool.")
     };
+
+    private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 
     private static string Describe(AgentStep p) => p.Action switch
     {

@@ -47,6 +47,8 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 ## Yapay zekâ kuralları
 
 - Kod `IChatClient` / `IEmbeddingGenerator` soyutlamalarına yazılır; sağlayıcıya özel tip sadece Infrastructure DI'da.
+  Sağlayıcı `Ai:Provider` ile seçilir (`OpenAICompatible` = Gemini varsayılanı, `Ollama` = yerel). API anahtarı sadece `.env`'de.
+- Modele gönderilen JSON şemalarında nullable alan olmaz (sağlayıcı uyumluluğu).
 - LLM çıkarır, kod hesaplar: tarih aritmetiği, toplamlar, yüzdeler kodda. Modelden sayı üretmesi istenmez.
 - Model çıktısı JSON schema ile kısıtlanır ve doğrulanır; kullanılamayan çıktı `AiResponseException` (422).
 - Ajan araçları `userId` parametresi almaz; kullanıcı `IUserContext`'ten gelir. Araçlar salt okunur.

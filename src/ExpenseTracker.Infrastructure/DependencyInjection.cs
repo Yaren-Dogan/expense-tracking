@@ -6,6 +6,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OllamaSharp;
+using OpenAI;
+using System.ClientModel;
 using ExpenseTracker.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -41,8 +43,8 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Registers the model behind the provider-neutral Microsoft.Extensions.AI interfaces. Swapping Ollama for
-    /// another provider (Claude, OpenAI, Azure) only changes the two client factories below.
+    /// Registers the model behind the provider-neutral Microsoft.Extensions.AI interfaces. Application code never sees
+    /// which provider is configured (Ai:Provider): Ollama locally, or any OpenAI-compatible API such as Gemini.
     /// </summary>
     private static void AddAi(this IServiceCollection services, IConfiguration configuration)
     {
@@ -60,12 +62,7 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
         });
 
-        services.AddChatClient(sp =>
-            {
-                var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
-                var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama");
-                return new OllamaApiClient(http, options.ChatModel);
-            })
+        services.AddChatClient(CreateChatClient)
             .Use((inner, sp) => new FunctionInvokingChatClient(inner, sp.GetService<ILoggerFactory>(), sp)
             {
                 MaximumIterationsPerRequest = sp.GetRequiredService<IOptions<AssistantOptions>>().Value.MaxToolIterations
@@ -73,14 +70,40 @@ public static class DependencyInjection
             .UseLogging();
 
         services.AddEmbeddingGenerator(sp =>
-        {
-            var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
-            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama");
-            return new OllamaApiClient(http, options.EmbeddingModel);
-        });
+            new FixedDimensionEmbeddingGenerator(CreateEmbeddingGenerator(sp), AiOptions.EmbeddingDimensions));
 
         services.AddScoped<ISemanticExpenseSearch, PgvectorExpenseSearch>();
         services.AddSingleton<ExpenseEmbeddingIndexer>();
         services.AddHostedService(sp => sp.GetRequiredService<ExpenseEmbeddingIndexer>());
     }
+
+    private static IChatClient CreateChatClient(IServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
+        return options.Provider switch
+        {
+            AiProvider.Ollama => new OllamaApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama"), options.ChatModel),
+            _ when string.IsNullOrWhiteSpace(options.ApiKey) => new UnconfiguredAiClient(),
+            _ => CreateOpenAIClient(options).GetChatClient(options.ChatModel).AsIChatClient()
+        };
+    }
+
+    private static IEmbeddingGenerator<string, Embedding<float>> CreateEmbeddingGenerator(IServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
+        return options.Provider switch
+        {
+            AiProvider.Ollama => new OllamaApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama"), options.EmbeddingModel),
+            _ when string.IsNullOrWhiteSpace(options.ApiKey) => new UnconfiguredAiClient(),
+            _ => CreateOpenAIClient(options).GetEmbeddingClient(options.EmbeddingModel).AsIEmbeddingGenerator()
+        };
+    }
+
+    /// <summary>One client type for every OpenAI-compatible provider; only the endpoint, key and model names differ.</summary>
+    private static OpenAIClient CreateOpenAIClient(AiOptions options) =>
+        new(new ApiKeyCredential(options.ApiKey!), new OpenAIClientOptions
+        {
+            Endpoint = new Uri(options.Endpoint),
+            NetworkTimeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds)
+        });
 }

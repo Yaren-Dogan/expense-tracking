@@ -13,7 +13,7 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 - **Son 7 günün havası** ve **ay sonu tahmini.**
 - Web ve mobil uyumlu PWA: telefonda "Ana ekrana ekle" ile uygulama gibi çalışır.
 
-### Yapay zekâ özellikleri (yerel, ücretsiz: Ollama)
+### Yapay zekâ özellikleri (ücretsiz: Gemini API ya da yerel Ollama)
 
 <img src="docs/screenshots/ai.png" alt="Yapay zekâ özellikleri" width="640">
 
@@ -30,28 +30,29 @@ Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Mimari standart ve review list
 
 ## Çalıştırma
 
-Gereken: Docker. Yapay zekâ modelleri için en az 8 GB RAM önerilir.
+Gereken: Docker.
 
-```bash
-docker compose up --build
-```
+1. Yapay zekâ için ücretsiz bir Gemini API anahtarı al: https://aistudio.google.com/apikey
+2. `.env.example` dosyasını `.env` olarak kopyala ve anahtarı yaz (`.env` git'e eklenmez):
 
-İlk çalıştırmada `ollama-models` servisi modelleri indirir (~3 GB, bir kez). İndirme bitene kadar
-yapay zekâ özellikleri "servise ulaşılamıyor" der; uygulamanın geri kalanı normal çalışır.
-İlerlemeyi görmek için: `docker compose logs -f ollama-models`.
+   ```powershell
+   Copy-Item .env.example .env
+   notepad .env        # AI_API_KEY=... satırını doldur
+   ```
 
-Daha güçlü bir makinede daha iyi model: `CHAT_MODEL=qwen2.5:7b AGENT_MODE=Native docker compose up`.
+3. Başlat:
 
-**Modeller Docker içinden inmiyorsa** (`ollama-models` loglarında sürekli `Error: EOF`): Ollama'yı doğrudan
-bilgisayara kur ve API'yi ona yönlendir.
+   ```bash
+   docker compose up -d --build
+   ```
 
-```powershell
-winget install -e --id Ollama.Ollama
-ollama pull qwen2.5:3b
-ollama pull bge-m3
-Set-Content .env "OLLAMA_URL=http://host.docker.internal:11434"
-docker compose up -d --build --scale ollama=0 --scale ollama-models=0
-```
+Anahtar yoksa uygulama yine çalışır; sadece yapay zekâ özellikleri "yapılandırılmamış" der.
+Gemini ücretsiz katmanında istekler dakika başına sınırlıdır ve gönderilen veriler Google tarafından
+model geliştirmek için kullanılabilir; gerçek kişisel veri yerine test verisi kullan.
+
+**Yerel model (internetsiz, ~7 GB disk):** `.env` içinde Ollama satırlarını aç
+(`.env.example`'daki yorumlu bölüm) ve `docker compose --profile ollama up -d --build` ile başlat.
+Modellerin inişini izlemek için: `docker compose logs -f ollama-models`.
 
 - Uygulama: http://localhost:8080
 - API: http://localhost:5080 (sağlık: `/health`)
@@ -82,8 +83,8 @@ dotnet run --project src/ExpenseTracker.Api          # http://localhost:5080, mi
 cd web && npm install && npm run dev                 # http://localhost:5173, /api isteklerini API'ye yönlendirir
 ```
 
-Yapay zekâ için Ollama'yı ayrıca çalıştır: `docker compose up -d ollama ollama-models`
-(ya da https://ollama.com kurup `ollama pull qwen2.5:3b && ollama pull bge-m3`).
+Yapay zekâ ayarları `appsettings.Development.json` ya da ortam değişkenleriyle verilir:
+`Ai__Provider`, `Ai__Endpoint`, `Ai__ApiKey`, `Ai__ChatModel`, `Ai__EmbeddingModel`, `Ai__AgentMode`.
 
 ### Test
 
@@ -103,7 +104,7 @@ deterministik sahte model ve embedding istemcileriyle çalışır.
 src/
   ExpenseTracker.Domain          Entity'ler, hava durumu hesabı (saf, paketsiz)
   ExpenseTracker.Application     CQRS (MediatR), FluentValidation, use case'ler, prompt'lar, ajan araçları
-  ExpenseTracker.Infrastructure  EF Core + PostgreSQL/pgvector, Ollama istemcileri, embedding indexleyici
+  ExpenseTracker.Infrastructure  EF Core + PostgreSQL/pgvector, model istemcileri (Ollama / OpenAI uyumlu), indexleyici
   ExpenseTracker.Api             Controller'lar, kullanıcı middleware'i, ProblemDetails
 tests/                           Domain, Application ve API entegrasyon testleri
 web/                             React + Vite + TypeScript PWA

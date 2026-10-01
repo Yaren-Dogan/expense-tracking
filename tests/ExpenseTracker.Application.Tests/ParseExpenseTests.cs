@@ -77,6 +77,7 @@ public class ParseExpenseTests
         model.Requests.Single()[0].Text.Should().Contain("2026-10-01").And.Contain("Perşembe");
         model.Options.Single()!.Temperature.Should().Be(0);
         model.Options.Single()!.ResponseFormat.Should().BeOfType<ChatResponseFormatJson>()
-            .Which.Schema.ToString().Should().Contain("Clothing", "the category enum must be part of the schema");
+            .Which.Schema.ToString().Should().Contain("Clothing", "the category enum must be part of the schema")
+            .And.NotContain("null", "some providers (e.g. Gemini) reject nullable type unions");
     }
 }

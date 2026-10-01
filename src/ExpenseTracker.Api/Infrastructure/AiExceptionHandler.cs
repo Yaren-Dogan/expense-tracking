@@ -1,4 +1,5 @@
 using ExpenseTracker.Application.Common.Exceptions;
+using System.ClientModel;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,16 @@ public sealed class AiExceptionHandler(IProblemDetailsService problemDetails) : 
         var (status, title, detail) = exception switch
         {
             AiResponseException e => (StatusCodes.Status422UnprocessableEntity, "Model output could not be used.", e.Message),
+            AiUnavailableException e => (StatusCodes.Status503ServiceUnavailable, "AI service not configured.", e.Message),
+            // Hosted providers (Gemini, OpenAI) report problems as HTTP statuses; tell the user which one it is.
+            ClientResultException { Status: 401 or 403 } => (StatusCodes.Status503ServiceUnavailable, "AI service rejected the key.",
+                "Yapay zekâ servisi API anahtarını kabul etmedi. .env dosyasındaki AI_API_KEY değerini kontrol et."),
+            ClientResultException { Status: 429 } => (StatusCodes.Status503ServiceUnavailable, "AI quota exceeded.",
+                "Yapay zekâ servisinin ücretsiz kotası şu an doldu. Bir dakika bekleyip tekrar dene."),
+            ClientResultException { Status: 404 } => (StatusCodes.Status503ServiceUnavailable, "AI model not found.",
+                "Yapay zekâ modeli bulunamadı. .env dosyasındaki CHAT_MODEL / EMBEDDING_MODEL adlarını kontrol et."),
+            ClientResultException => (StatusCodes.Status503ServiceUnavailable, "AI service error.",
+                "Yapay zekâ servisi şu an cevap vermiyor. Biraz sonra tekrar dene."),
             HttpRequestException => (StatusCodes.Status503ServiceUnavailable, "AI service unavailable.",
                 "Yapay zekâ servisine şu an ulaşılamıyor. Model indiriliyor olabilir; biraz sonra tekrar dene."),
             // A timeout surfaces as a cancellation the client did not ask for.

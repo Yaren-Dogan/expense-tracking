@@ -1,4 +1,5 @@
 using ExpenseTracker.Application.Common.Ai;
+using ExpenseTracker.Application.Common.Exceptions;
 using ExpenseTracker.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -36,6 +37,14 @@ public sealed partial class ExpenseEmbeddingIndexer(
             {
                 // Ollama is up but the model is not pulled yet (normal on first start): one line, no stack trace.
                 LogModelNotAvailable(logger, options.Value.EmbeddingModel);
+            }
+            catch (AiUnavailableException ex)
+            {
+                LogProviderUnavailable(logger, ex.Message);
+            }
+            catch (System.ClientModel.ClientResultException ex)
+            {
+                LogProviderUnavailable(logger, $"HTTP {ex.Status}: {ex.Message.Split('\n')[0]}");
             }
             catch (HttpRequestException ex) when (ex.StatusCode is null)
             {
@@ -119,6 +128,10 @@ public sealed partial class ExpenseEmbeddingIndexer(
     [LoggerMessage(EventId = 3005, EventName = "ModelServerUnreachable", Level = LogLevel.Warning,
         Message = "Model server {Endpoint} is unreachable; will retry")]
     private static partial void LogModelServerUnreachable(ILogger logger, string endpoint);
+
+    [LoggerMessage(EventId = 3006, EventName = "AiProviderUnavailable", Level = LogLevel.Warning,
+        Message = "Embedding provider unavailable ({Reason}); will retry")]
+    private static partial void LogProviderUnavailable(ILogger logger, string reason);
 
     [LoggerMessage(EventId = 3003, EventName = "ExpenseDeletedDuringIndexing", Level = LogLevel.Debug,
         Message = "An expense was deleted while being indexed; batch will be retried")]

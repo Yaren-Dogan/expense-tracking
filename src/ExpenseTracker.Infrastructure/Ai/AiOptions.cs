@@ -1,8 +1,22 @@
 namespace ExpenseTracker.Infrastructure.Ai;
 
+public enum AiProvider
+{
+    /// <summary>Local models through Ollama's native API.</summary>
+    Ollama,
+
+    /// <summary>Any OpenAI-compatible API: Google Gemini (free tier), OpenAI, Groq, or Ollama's /v1 endpoint.</summary>
+    OpenAICompatible
+}
+
 public sealed class AiOptions
 {
     public const string SectionName = "Ai";
+
+    public AiProvider Provider { get; set; } = AiProvider.Ollama;
+
+    /// <summary>Required for hosted providers. Comes from the environment (.env), never from a committed file.</summary>
+    public string? ApiKey { get; set; }
 
     /// <summary>Must match the <c>vector(n)</c> column; changing it needs a migration.</summary>
     public const int EmbeddingDimensions = 1024;

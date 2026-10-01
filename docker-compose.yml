@@ -25,12 +25,16 @@ services:
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=expense_tracker;Username=expense;Password=${POSTGRES_PASSWORD:-expense_dev}
       Database__MigrateOnStartup: "true"
       Clock__TimeZone: Europe/Istanbul
-      # Override with OLLAMA_URL=http://host.docker.internal:11434 to use Ollama installed on the host instead.
-      Ai__Endpoint: ${OLLAMA_URL:-http://ollama:11434}
-      Ai__ChatModel: ${CHAT_MODEL:-qwen2.5:3b}
-      Ai__EmbeddingModel: bge-m3
-      # Planned works with small local models; switch to Native for a capable model (e.g. qwen2.5:7b and up).
-      Ai__AgentMode: ${AGENT_MODE:-Planned}
+      # AI provider. Default: Google Gemini's free tier through its OpenAI-compatible API (nothing downloaded locally).
+      # Put AI_API_KEY in .env. For local models instead: AI_PROVIDER=Ollama, AI_ENDPOINT=http://ollama:11434,
+      # CHAT_MODEL=qwen2.5:3b, EMBEDDING_MODEL=bge-m3, AGENT_MODE=Planned and start with --profile ollama.
+      Ai__Provider: ${AI_PROVIDER:-OpenAICompatible}
+      Ai__Endpoint: ${AI_ENDPOINT:-https://generativelanguage.googleapis.com/v1beta/openai/}
+      Ai__ApiKey: ${AI_API_KEY:-}
+      Ai__ChatModel: ${CHAT_MODEL:-gemini-flash-latest}
+      Ai__EmbeddingModel: ${EMBEDDING_MODEL:-gemini-embedding-001}
+      # Native: the model's own tool calling (capable hosted models). Planned: for small local models.
+      Ai__AgentMode: ${AGENT_MODE:-Native}
     ports:
       - "5080:8080"
     depends_on:
@@ -45,17 +49,17 @@ services:
       # The API waits for a healthy database and migrates on start; /health reports readiness.
       - api
 
-  # Local LLM runtime. The first start downloads the models (~3 GB) through the ollama-models job below.
-  # Not published on the host: the API reaches it on the compose network, and port 11434 stays free
-  # for an Ollama installed directly on the host (see OLLAMA_URL above).
+  # Optional local LLM runtime (~3.75 GB image + ~3 GB models). Only started with: docker compose --profile ollama up
   ollama:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     volumes:
       - ollama:/root/.ollama
 
   # One-off job: pulls the chat and embedding models, then exits. Re-running it is cheap once they are cached.
   ollama-models:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     environment:
       OLLAMA_HOST: ollama:11434
     # Waits for the server (depends_on only orders container starts), then pulls each model with retries:

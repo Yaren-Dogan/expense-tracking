@@ -20,12 +20,15 @@ public sealed class ParseExpenseQueryHandler(
 {
     private const int MaxDaysAgo = 365;
 
-    /// <summary>What the model is asked to return. The JSON schema sent to the model is generated from this type.</summary>
+    /// <summary>
+    /// What the model is asked to return. The JSON schema sent to the model is generated from this type; it has no
+    /// nullable fields because providers differ in how (or whether) they accept "type": ["string", "null"].
+    /// </summary>
     internal sealed record ExpenseDraft(
         [property: Description("Tutar, sadece sayı")] decimal Amount,
         [property: Description("Kategori")] ExpenseCategory Category,
         [property: Description("Kaç gün önce: bugün 0, dün 1")] int DaysAgo,
-        [property: Description("Harcamanın 2-4 kelimelik kısa adı")] string? Note);
+        [property: Description("Harcamanın 2-4 kelimelik kısa adı, yoksa boş")] string Note);
 
     public async Task<ParsedExpenseDto> Handle(ParseExpenseQuery request, CancellationToken cancellationToken)
     {

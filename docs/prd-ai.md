@@ -10,14 +10,24 @@ Ana PRD: [`prd.md`](prd.md). Bu doküman uygulamaya eklenen üç LLM özelliğin
 | Anlamsal harcama araması | RAG retrieval: embedding + pgvector | `GET /api/expenses/search?q=` |
 | Bütçe asistanı | AI agent: tool calling + RAG | `POST /api/assistant/chat` |
 
-Model sağlayıcısı: **Ollama** (yerel, ücretsiz). Kod `Microsoft.Extensions.AI` soyutlamalarına
-(`IChatClient`, `IEmbeddingGenerator`) yazıldığı için sağlayıcı tek bir DI kaydıyla değiştirilebilir
-(Claude, OpenAI, Azure OpenAI).
+Model sağlayıcısı yapılandırmayla seçilir (`Ai:Provider`). Kod `Microsoft.Extensions.AI` soyutlamalarına
+(`IChatClient`, `IEmbeddingGenerator`) yazıldığı için uygulama mantığı hangi sağlayıcının kullanıldığını bilmez.
 
-| Model | Görev | Neden |
-| --- | --- | --- |
-| `qwen2.5:3b` | Sohbet, ayrıştırma, tool calling | Küçük (~2 GB), Türkçesi yeterli, tool calling destekli |
-| `bge-m3` | Embedding (1024 boyut) | Çok dilli; Türkçe anlamsal benzerlikte İngilizce odaklı modellerden iyi |
+| Sağlayıcı | Sohbet / plan | Embedding | Disk | Varsayılan ajan modu |
+| --- | --- | --- | --- | --- |
+| `OpenAICompatible` + Google Gemini (varsayılan) | `gemini-flash-latest` | `gemini-embedding-001` (1024'e indirilir) | 0 | `Native` |
+| `Ollama` (yerel) | `qwen2.5:3b` | `bge-m3` (1024) | ~7 GB | `Planned` |
+
+`OpenAICompatible` aynı kodla OpenAI, Groq ya da Ollama'nın `/v1` ucuyla da çalışır; sadece adres, anahtar ve model adları değişir.
+
+**Embedding boyutu:** Veritabanı kolonu `vector(1024)`. Gemini varsayılan olarak 3072 boyut döner; `FixedDimensionEmbeddingGenerator`
+önce sağlayıcıdan 1024 boyut ister, uymayan sağlayıcının vektörünü ilk 1024 boyuta kesip yeniden normalize eder.
+Gemini embedding modelleri buna göre eğitilmiştir (Matryoshka representation learning).
+
+**Şemalar nullable alan içermez:** Sağlayıcılar `"type": ["string", "null"]` gibi birleşik tipleri farklı destekler;
+kullanılmayan alanlar boş metin döner.
+
+**Anahtar yoksa** uygulama yine açılır; yapay zekâ uçları `503` ve "yapılandırılmamış" mesajı döner.
 
 ## 1. Doğal dille harcama girişi
 
@@ -85,6 +95,7 @@ Tasarım kararları:
 | Durum | Cevap |
 | --- | --- |
 | Model servisine ulaşılamıyor / zaman aşımı | `503` ProblemDetails |
+| API anahtarı yok, geçersiz (401/403), kota dolu (429), model adı yanlış (404) | `503`, nedeni Türkçe açıklanır |
 | Model çıktısı ayrıştırılamadı | `422` ProblemDetails |
 | Girdi geçersiz (boş metin, çok uzun) | `400` ProblemDetails |
 
