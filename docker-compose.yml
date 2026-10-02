@@ -27,14 +27,16 @@ services:
       Clock__TimeZone: Europe/Istanbul
       # AI provider. Default: Google Gemini's free tier through its OpenAI-compatible API (nothing downloaded locally).
       # Put AI_API_KEY in .env. For local models instead: AI_PROVIDER=Ollama, AI_ENDPOINT=http://ollama:11434,
-      # CHAT_MODEL=qwen2.5:3b, EMBEDDING_MODEL=bge-m3, AGENT_MODE=Planned and start with --profile ollama.
+      # CHAT_MODEL=qwen2.5:3b, EMBEDDING_MODEL=bge-m3 and start with --profile ollama.
       Ai__Provider: ${AI_PROVIDER:-OpenAICompatible}
       Ai__Endpoint: ${AI_ENDPOINT:-https://generativelanguage.googleapis.com/v1beta/openai/}
       Ai__ApiKey: ${AI_API_KEY:-}
       Ai__ChatModel: ${CHAT_MODEL:-gemini-flash-latest}
       Ai__EmbeddingModel: ${EMBEDDING_MODEL:-gemini-embedding-001}
-      # Native: the model's own tool calling (capable hosted models). Planned: for small local models.
-      Ai__AgentMode: ${AGENT_MODE:-Native}
+      # Planned: the app runs the tool loop using schema-constrained JSON; works with every provider.
+      # Native uses the provider's own tool calling. Gemini 3.x fails it through the OpenAI-compatible API
+      # (it requires a "thought signature" to be echoed back, which OpenAI clients drop), so Planned is the default.
+      Ai__AgentMode: ${AGENT_MODE:-Planned}
     ports:
       - "5080:8080"
     depends_on:

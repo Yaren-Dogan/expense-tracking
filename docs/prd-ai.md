@@ -15,7 +15,7 @@ Model sağlayıcısı yapılandırmayla seçilir (`Ai:Provider`). Kod `Microsoft
 
 | Sağlayıcı | Sohbet / plan | Embedding | Disk | Varsayılan ajan modu |
 | --- | --- | --- | --- | --- |
-| `OpenAICompatible` + Google Gemini (varsayılan) | `gemini-flash-latest` | `gemini-embedding-001` (1024'e indirilir) | 0 | `Native` |
+| `OpenAICompatible` + Google Gemini (varsayılan) | `gemini-flash-latest` | `gemini-embedding-001` (1024'e indirilir) | 0 | `Planned` |
 | `Ollama` (yerel) | `qwen2.5:3b` | `bge-m3` (1024) | ~7 GB | `Planned` |
 
 `OpenAICompatible` aynı kodla OpenAI, Groq ya da Ollama'nın `/v1` ucuyla da çalışır; sadece adres, anahtar ve model adları değişir.
@@ -23,6 +23,10 @@ Model sağlayıcısı yapılandırmayla seçilir (`Ai:Provider`). Kod `Microsoft
 **Embedding boyutu:** Veritabanı kolonu `vector(1024)`. Gemini varsayılan olarak 3072 boyut döner; `FixedDimensionEmbeddingGenerator`
 önce sağlayıcıdan 1024 boyut ister, uymayan sağlayıcının vektörünü ilk 1024 boyuta kesip yeniden normalize eder.
 Gemini embedding modelleri buna göre eğitilmiştir (Matryoshka representation learning).
+
+**Gemini ile Native mod çalışmaz:** Gemini 3.x araç çağrısı yaptığında cevaba bir "thought signature" ekler ve sonraki
+istekte bunun geri gönderilmesini ister. OpenAI uyumlu istemciler (Microsoft.Extensions.AI dahil) bu alanı tanımadığı için
+düşürür, Gemini 400 döner. Planned mod modelin tool calling özelliğini kullanmadığı için etkilenmez; bu yüzden varsayılan.
 
 **Şemalar nullable alan içermez:** Sağlayıcılar `"type": ["string", "null"]` gibi birleşik tipleri farklı destekler;
 kullanılmayan alanlar boş metin döner.
