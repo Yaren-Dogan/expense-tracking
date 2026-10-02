@@ -62,6 +62,16 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
         });
 
+        services.AddHttpClient("openai-compatible", (sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<AiOptions>>().Value;
+            // A trailing slash makes relative paths like "embeddings" append to the endpoint instead of replacing its last segment.
+            client.BaseAddress = new Uri(options.Endpoint.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
+            if (!string.IsNullOrWhiteSpace(options.ApiKey))
+                client.DefaultRequestHeaders.Authorization = new("Bearer", options.ApiKey);
+        });
+
         services.AddChatClient(CreateChatClient)
             .Use((inner, sp) => new FunctionInvokingChatClient(inner, sp.GetService<ILoggerFactory>(), sp)
             {
@@ -95,7 +105,8 @@ public static class DependencyInjection
         {
             AiProvider.Ollama => new OllamaApiClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("ollama"), options.EmbeddingModel),
             _ when string.IsNullOrWhiteSpace(options.ApiKey) => new UnconfiguredAiClient(),
-            _ => CreateOpenAIClient(options).GetEmbeddingClient(options.EmbeddingModel).AsIEmbeddingGenerator()
+            _ => new OpenAICompatibleEmbeddingGenerator(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("openai-compatible"), options.EmbeddingModel)
         };
     }
 

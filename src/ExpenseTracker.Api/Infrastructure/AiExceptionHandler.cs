@@ -24,8 +24,16 @@ public sealed class AiExceptionHandler(IProblemDetailsService problemDetails) : 
                 "Yapay zekâ servisinin ücretsiz kotası şu an doldu. Bir dakika bekleyip tekrar dene."),
             ClientResultException { Status: 404 } => (StatusCodes.Status503ServiceUnavailable, "AI model not found.",
                 "Yapay zekâ modeli bulunamadı. .env dosyasındaki CHAT_MODEL / EMBEDDING_MODEL adlarını kontrol et."),
+            ClientResultException { Status: 500 or 502 or 503 or 504 } => (StatusCodes.Status503ServiceUnavailable, "AI provider overloaded.",
+                "Yapay zekâ servisi şu an yoğun (sağlayıcı tarafında geçici bir sorun). Birkaç saniye sonra tekrar dene."),
             ClientResultException => (StatusCodes.Status503ServiceUnavailable, "AI service error.",
                 "Yapay zekâ servisi şu an cevap vermiyor. Biraz sonra tekrar dene."),
+            HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden } =>
+                (StatusCodes.Status503ServiceUnavailable, "AI service rejected the key.",
+                "Yapay zekâ servisi API anahtarını kabul etmedi. .env dosyasındaki AI_API_KEY değerini kontrol et."),
+            HttpRequestException { StatusCode: System.Net.HttpStatusCode.TooManyRequests } =>
+                (StatusCodes.Status503ServiceUnavailable, "AI quota exceeded.",
+                "Yapay zekâ servisinin ücretsiz kotası şu an doldu. Bir dakika bekleyip tekrar dene."),
             HttpRequestException => (StatusCodes.Status503ServiceUnavailable, "AI service unavailable.",
                 "Yapay zekâ servisine şu an ulaşılamıyor. Model indiriliyor olabilir; biraz sonra tekrar dene."),
             // A timeout surfaces as a cancellation the client did not ask for.

@@ -5,7 +5,9 @@ using ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
 using ExpenseTracker.Application.Features.Expenses;
 using ExpenseTracker.Application.Features.Expenses.Queries.ParseExpense;
 using ExpenseTracker.Domain.Enums;
+using ExpenseTracker.Infrastructure.Ai;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ExpenseTracker.Api.IntegrationTests;
 
@@ -25,11 +27,13 @@ public class AiApiTests : IDisposable
     private static object Expense(decimal amount, string category, string note, string spentOn) =>
         new { amount, category, note, spentOn };
 
-    private static async Task<List<ExpenseMatch>> SearchUntilIndexed(HttpClient client, string query, int expected)
+    private async Task<List<ExpenseMatch>> SearchUntilIndexed(HttpClient client, string query, int expected)
     {
-        // The indexer runs every second in tests; poll instead of sleeping a fixed time.
-        for (var attempt = 0; attempt < 30; attempt++)
+        // The test clock is frozen, so the background timer never ticks: run an indexing pass directly.
+        var indexer = _factory.Services.GetRequiredService<ExpenseEmbeddingIndexer>();
+        for (var attempt = 0; attempt < 10; attempt++)
         {
+            while (await indexer.IndexBatchAsync(default) > 0) { }
             var matches = await client.GetFromJsonAsync<List<ExpenseMatch>>(
                 $"/api/expenses/search?q={Uri.EscapeDataString(query)}", TestClient.Json);
             if (matches!.Count >= expected) return matches;

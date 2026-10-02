@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using ExpenseTracker.Application.Common.Ai;
+using ExpenseTracker.Application.Common.Exceptions;
 using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Application.Features.Weather.Queries.GetWeather;
 using ExpenseTracker.Domain.Enums;
@@ -148,7 +149,17 @@ public sealed class AssistantTools(
         if (string.IsNullOrWhiteSpace(query))
             return new { hata = "Arama metni boş olamaz." };
 
-        var matches = await search.SearchAsync(user.UserId, query, MaxSearchResults, cancellationToken);
+        IReadOnlyList<ExpenseMatch> matches;
+        try
+        {
+            matches = await search.SearchAsync(user.UserId, query, MaxSearchResults, cancellationToken);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or AiUnavailableException)
+        {
+            // Search needs the embedding model; if it is down, the agent can still fall back to list/category tools.
+            return new { hata = "Anlamsal arama şu an kullanılamıyor. list_expenses ya da get_spending_by_category ile dene." };
+        }
+
         var total = matches.Sum(m => m.Expense.Amount);
         var özet = matches.Count == 0
             ? $"'{query}' ile ilgili harcama bulunamadı."

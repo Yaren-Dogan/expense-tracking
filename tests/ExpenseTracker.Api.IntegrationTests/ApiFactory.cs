@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
 namespace ExpenseTracker.Api.IntegrationTests;
@@ -21,6 +22,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public ProgrammableChatClient Model { get; } = new();
 
+    // Tests use fixed dates (September 2026); pinning the clock keeps "not in the future" rules stable as real time passes.
+    public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 9, 30, 9, 0, 0, TimeSpan.Zero));
+
     public async Task InitializeAsync() => await _postgres.StartAsync();
 
     public new async Task DisposeAsync()
@@ -34,13 +38,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Postgres", _postgres.GetConnectionString());
         builder.UseSetting("Database:MigrateOnStartup", "true");
-        builder.UseSetting("Ai:IndexIntervalSeconds", "1");
         builder.UseSetting("Ai:EmbeddingModel", "fake-embeddings");
         // The fake's bag-of-words vectors score lower than a real model; the threshold is tuned for it.
         builder.UseSetting("Ai:MinSimilarity", "0.3");
 
         builder.ConfigureTestServices(services =>
         {
+            services.AddSingleton<TimeProvider>(Clock);
             services.AddSingleton<IChatClient>(Model);
             services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>, FakeEmbeddingGenerator>();
         });
