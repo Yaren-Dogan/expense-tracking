@@ -57,7 +57,8 @@ kayıtlarını da bulur.
 - **Indexleme arka planda yapılır** (`ExpenseEmbeddingIndexer`, varsayılan 10 sn). Harcama kaydı
   modele bağımlı değildir: Ollama kapalıyken de harcama eklenir, model açılınca indexlenir.
 - Embedding modeli değişirse eski vektörler otomatik yeniden üretilir (`model` kolonu karşılaştırılır).
-- Sonuçlar kullanıcıya göre filtrelenir ve `MinSimilarity` (0.45) altındakiler elenir.
+- Sonuçlar kullanıcıya göre filtrelenir ve benzerlik eşiğinin altındakiler elenir. Eşik modele göre değişir: bge-m3 için 0,5,
+  gemini-embedding-001 için 0,68 (Gemini alakasız kayıtlara bile 0,52–0,62 verir; ölçümler `AiOptions.EffectiveMinSimilarity`'de).
 
 ## 3. Bütçe asistanı (agent)
 

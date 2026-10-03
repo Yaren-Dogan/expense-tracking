@@ -31,6 +31,16 @@ public sealed class AiOptions
     public int IndexIntervalSeconds { get; set; } = 10;
     public int IndexBatchSize { get; set; } = 32;
 
-    /// <summary>Search results below this cosine similarity are treated as unrelated.</summary>
-    public double MinSimilarity { get; set; } = 0.5;
+    /// <summary>
+    /// Search results below this cosine similarity are treated as unrelated. Leave unset to use the measured default
+    /// for the embedding model (<see cref="EffectiveMinSimilarity"/>).
+    /// </summary>
+    public double? MinSimilarity { get; set; }
+
+    /// <summary>
+    /// Similarity scales differ per model, so one threshold does not fit all. Measured on Turkish expense notes:
+    /// bge-m3 scores related pairs 0.54–0.72 and unrelated ones 0.34–0.52; gemini-embedding-001 (truncated to 1024)
+    /// scores related pairs 0.70–0.80 and unrelated ones 0.48–0.63, so 0.5 filtered nothing there.
+    /// </summary>
+    public double EffectiveMinSimilarity => MinSimilarity ?? (EmbeddingModel.StartsWith("gemini-embedding", StringComparison.OrdinalIgnoreCase) ? 0.68 : 0.5);
 }

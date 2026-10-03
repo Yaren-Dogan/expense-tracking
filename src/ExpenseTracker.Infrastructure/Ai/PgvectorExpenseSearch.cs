@@ -21,7 +21,7 @@ public sealed class PgvectorExpenseSearch(
         var embedding = await generator.GenerateAsync(query, cancellationToken: cancellationToken);
         var queryVector = new Vector(embedding.Vector);
         var model = options.Value.EmbeddingModel;
-        var maxDistance = 1 - options.Value.MinSimilarity;
+        var maxDistance = 1 - options.Value.EffectiveMinSimilarity;
 
         // The explicit UserId condition is the primary isolation; the global filter is the backstop.
         var rows = await db.ExpenseEmbeddings
