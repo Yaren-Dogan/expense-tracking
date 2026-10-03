@@ -15,7 +15,7 @@ Model sağlayıcısı yapılandırmayla seçilir (`Ai:Provider`). Kod `Microsoft
 
 | Sağlayıcı | Sohbet / plan | Embedding | Disk | Varsayılan ajan modu |
 | --- | --- | --- | --- | --- |
-| `OpenAICompatible` + Google Gemini (varsayılan) | `gemini-flash-latest` | `gemini-embedding-001` (1024'e indirilir) | 0 | `Planned` |
+| `OpenAICompatible` + Google Gemini (varsayılan) | `gemini-3.5-flash-lite` | `gemini-embedding-001` (1024'e indirilir) | 0 | `Planned` |
 | `Ollama` (yerel) | `qwen2.5:3b` | `bge-m3` (1024) | ~7 GB | `Planned` |
 
 `OpenAICompatible` aynı kodla OpenAI, Groq ya da Ollama'nın `/v1` ucuyla da çalışır; sadece adres, anahtar ve model adları değişir.
