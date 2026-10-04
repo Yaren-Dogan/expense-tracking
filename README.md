@@ -11,6 +11,11 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 - **Bugünün havası:** Bugünkü harcaman, günlük payınla karşılaştırılır.
 - **Gönül rahatlığıyla harcanabilir:** Hava bozulmadan bugün daha ne kadar harcayabilirsin.
 - **Son 7 günün havası** ve **ay sonu tahmini.**
+- **Geçmiş aylar:** Önceki aylara gidip harcama ve bütçe girebilir, ayın nasıl kapandığını görebilirsin.
+- **Ortak hane:** Eşinle ya da ailenle aynı bütçeyi ve harcama listesini paylaş. Davet koduyla katılırken
+  "Aynı haneden misiniz?" diye sorulur; herkes tüm harcamaları görür, sadece kendi girdiğini siler.
+  <br><img src="docs/screenshots/household.png" alt="Aynı haneden misiniz? onayı" width="260">
+- **Hesap:** E-posta ve şifreyle kayıt/giriş. Oturum HttpOnly cookie'de tutulur.
 - Web ve mobil uyumlu PWA: telefonda "Ana ekrana ekle" ile uygulama gibi çalışır.
 
 ### Yapay zekâ özellikleri (ücretsiz: Gemini API ya da yerel Ollama)
@@ -26,7 +31,8 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 
 Tasarım kararları ve ölçümler: [`docs/prd-ai.md`](docs/prd-ai.md).
 
-Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
+Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Hesaplar, geçmiş aylar ve ortak hane:
+[`docs/prd-accounts.md`](docs/prd-accounts.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
 
 ## Çalıştırma
 
@@ -105,13 +111,14 @@ src/
   ExpenseTracker.Domain          Entity'ler, hava durumu hesabı (saf, paketsiz)
   ExpenseTracker.Application     CQRS (MediatR), FluentValidation, use case'ler, prompt'lar, ajan araçları
   ExpenseTracker.Infrastructure  EF Core + PostgreSQL/pgvector, model istemcileri (Ollama / OpenAI uyumlu), indexleyici
-  ExpenseTracker.Api             Controller'lar, kullanıcı middleware'i, ProblemDetails
+  ExpenseTracker.Api             Controller'lar, Identity cookie oturumu, defter middleware'i, ProblemDetails
 tests/                           Domain, Application ve API entegrasyon testleri
 web/                             React + Vite + TypeScript PWA
 ```
 
-MVP'de giriş yok: tarayıcı rastgele bir kullanıcı kimliği üretir ve `X-User-Id` header'ıyla gönderir.
-Bu bir parola değildir; gerçek kullanıcılar için kimlik doğrulama sonraki aşamada eklenecek.
+Giriş ASP.NET Core Identity ile yapılır; oturum HttpOnly, `SameSite=Strict` bir cookie'dir. Her harcama ve bütçe bir
+**deftere** (`LedgerId`) aittir: hanede değilsen kişisel defterin, hanedeysen hane defteri. Tüm sorgular aktif deftere
+göre filtrelenir. Hesaplardan önce bu tarayıcıda girilen veriler ilk kayıt/girişte hesaba taşınır.
 
 ## Claude ile çalışma
 

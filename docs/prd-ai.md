@@ -57,7 +57,7 @@ kayıtlarını da bulur.
 - **Indexleme arka planda yapılır** (`ExpenseEmbeddingIndexer`, varsayılan 10 sn). Harcama kaydı
   modele bağımlı değildir: Ollama kapalıyken de harcama eklenir, model açılınca indexlenir.
 - Embedding modeli değişirse eski vektörler otomatik yeniden üretilir (`model` kolonu karşılaştırılır).
-- Sonuçlar kullanıcıya göre filtrelenir ve benzerlik eşiğinin altındakiler elenir. Eşik modele göre değişir: bge-m3 için 0,5,
+- Sonuçlar aktif deftere göre filtrelenir ve benzerlik eşiğinin altındakiler elenir. Eşik modele göre değişir: bge-m3 için 0,5,
   gemini-embedding-001 için 0,68 (Gemini alakasız kayıtlara bile 0,52–0,62 verir; ölçümler `AiOptions.EffectiveMinSimilarity`'de).
 
 ## 3. Bütçe asistanı (agent)
@@ -86,8 +86,8 @@ Bu yüzden Planned modda **model karar verir, kod raporlar.**
 
 Tasarım kararları:
 
-- **Araçlar kullanıcıya kapsamlıdır.** Hiçbir araç `userId` parametresi almaz; kimlik sunucudaki
-  `IUserContext`'ten gelir. Model başka bir kullanıcının verisini isteyemez.
+- **Araçlar aktif deftere kapsamlıdır.** Hiçbir araç `userId`/`ledgerId` parametresi almaz; defter sunucudaki
+  `IUserContext`'ten gelir. Model başka bir kullanıcının ya da hanenin verisini isteyemez.
 - **Döngü sınırı.** Bir istekte en fazla 5 araç turu (`MaxToolIterations`); aynı araç aynı parametreyle tekrar istenirse döngü biter.
 - **Araç hataları metin döner.** Geçersiz tarih aralığında exception yerine açıklama döner; model düzeltip tekrar dener.
 - **Prompt injection savunması.** Sistem prompt'u harcama notlarını talimat değil veri olarak ele almasını söyler;

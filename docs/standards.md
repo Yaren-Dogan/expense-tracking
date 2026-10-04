@@ -24,17 +24,19 @@ invariant ihlali `DomainException`. İş hesapları (hava durumu) saf fonksiyon,
 `ValidationBehavior` pipeline'ı. `IAppDbContext` `DbSet` açar, repository yok.
 Zaman `TimeProvider`'dan.
 
-**Infrastructure:** `ApplyConfigurationsFromAssembly`. Kullanıcı izolasyonu global query filter.
+**Infrastructure:** `ApplyConfigurationsFromAssembly`. Defter (ledger) izolasyonu global query filter.
 Kritik tekillikler unique index ile. Unique ihlali `UniqueConstraintViolationException`'a çevrilir.
 
 **Api:** İnce controller. Yeni kayıt `201`, idempotent tekrar `200`, silme `204`, yok `404`,
-doğrulama `400 ProblemDetails`. Kullanıcı header'ı middleware'de zorunlu.
+doğrulama `400 ProblemDetails`. Fallback authorization policy: her uç oturum ister, açık olanlar `[AllowAnonymous]`. Başkasının
+kaydına işlem `403`, çakışma `409`.
 
 ## 3. Desenler
 
 | Desen | Uygulama |
 | --- | --- |
-| Kullanıcı izolasyonu | `X-User-Id` + middleware + global filter + sorguda açık koşul |
+| Kimlik | ASP.NET Core Identity, HttpOnly + `SameSite=Strict` cookie, kilitleme, IP/kullanıcı başına rate limit |
+| Veri izolasyonu | Aktif defter (`LedgerMiddleware`) + global filter + sorguda açık `LedgerId` koşulu |
 | Idempotency | `Idempotency-Key`, `(UserId, IdempotencyKey)` unique, yarışta kazanan döner |
 | Upsert yarışı | Bütçe `(UserId, Year, Month)` unique, ihlalde yeniden okuyup günceller |
 | Zaman | `TimeProvider` + yapılandırılmış saat dilimi, istemci tarihi opsiyonel |
@@ -66,8 +68,10 @@ doğrulama `400 ProblemDetails`. Kullanıcı header'ı middleware'de zorunlu.
 - [ ] Config, compose, migration ve kod aynı veritabanını kullanıyor.
 
 **İzolasyon ve güvenlik**
-- [ ] `X-User-Id` zorunlu ve GUID.
-- [ ] Her sorgu kullanıcıya göre filtreli; `IgnoreQueryFilters` yok ya da gerekçeli.
+- [ ] Yeni uç oturum istiyor; `[AllowAnonymous]` sadece kayıt/giriş/health için ve rate limit'li.
+- [ ] Her sorgu aktif deftere göre filtreli; `IgnoreQueryFilters` yok ya da gerekçeli (açık `UserId` koşuluyla).
+- [ ] Değiştirme/silme yetkisi sunucuda kontrol ediliyor (örn. sadece kendi girdiğin harcama), arayüzde gizlemek yetmez.
+- [ ] Giriş hataları kullanıcı varlığını sızdırmıyor (bilinmeyen e-posta ile yanlış şifre aynı cevap).
 - [ ] Girdi doğrulanıyor (tutar, not, tarih, ay formatı).
 - [ ] Gizli bilgi repoda değil (compose'daki yerel geliştirme şifresi hariç, açıkça belirtilmiş).
 

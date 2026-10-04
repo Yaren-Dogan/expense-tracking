@@ -18,17 +18,13 @@ fırtına mı geliyor? Bir bakışta anlaşılır, her gün açmak için bir seb
 - Hava durumu ekranı (yukarıdaki 4 bilgi).
 - Web + mobil uyumlu PWA (telefona uygulama gibi eklenebilir).
 
-Kapsam dışı (sonraki sürümler): kimlik doğrulama, çoklu para birimi,
-tekrarlayan harcamalar, bildirimler, paylaşılan bütçe.
+Kapsam dışı (sonraki sürümler): çoklu para birimi, tekrarlayan harcamalar, bildirimler.
+Kimlik doğrulama, geçmiş aylar ve paylaşılan (hane) bütçesi eklendi: [`prd-accounts.md`](prd-accounts.md).
 
-## Kullanıcı kimliği (MVP)
+## Kullanıcı kimliği
 
-Kimlik doğrulama yok. İstemci ilk açılışta bir GUID üretir ve saklar;
-her istekte `X-User-Id` header'ında gönderir. Tüm veriler bu kimliğe göre
-izole edilir (referans projedeki tenant deseni).
-
-> Güvenlik notu: Bu kimlik bir parola değildir. Kimliği bilen veriyi görebilir.
-> Gerçek kullanıcılar için kimlik doğrulama bir sonraki aşamanın konusudur.
+MVP'deki `X-User-Id` header'ı kaldırıldı. Kullanıcı e-posta ve şifreyle giriş yapar, kimlik cookie oturumundan gelir.
+Veriler kullanıcının aktif defterine göre izole edilir. Ayrıntılar: [`prd-accounts.md`](prd-accounts.md).
 
 ## Hava durumu kuralları
 
@@ -69,7 +65,7 @@ Gönderilmezse sunucu yapılandırılmış saat dilimini (`Europe/Istanbul`) kul
 
 ## Endpoint'ler
 
-Tüm `/api` istekleri `X-User-Id` (GUID) ister; yoksa ya da geçersizse `400`.
+Tüm `/api` istekleri oturum ister; yoksa `401`. Hesap ve hane uçları: [`prd-accounts.md`](prd-accounts.md).
 
 | Metot | Yol | Açıklama | Başarılı |
 | --- | --- | --- | --- |

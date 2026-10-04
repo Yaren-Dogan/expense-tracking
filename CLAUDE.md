@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 Bütçe Hava Durumu: harcama takibi yapan, bütçenin durumunu hava durumu gibi
-anlatan bir uygulama. Gereksinimler: `docs/prd.md`, yapay zekâ özellikleri: `docs/prd-ai.md`. Mimari standart ve review
+anlatan bir uygulama. Gereksinimler: `docs/prd.md`, yapay zekâ özellikleri: `docs/prd-ai.md`, hesaplar/geçmiş aylar/ortak hane:
+`docs/prd-accounts.md`. Mimari standart ve review
 listesi: `docs/standards.md`. Kod İngilizce, dokümanlar Türkçe.
 
 ## Yapı
@@ -37,7 +38,11 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 - Her use case kendi klasöründe: `XCommand` (record) + `XCommandHandler` + `XCommandValidator`.
 - Controller'da iş mantığı yok: `mediator.Send` + HTTP status.
 - Durum değişiklikleri entity metodlarıyla (`Expense.Create`, `Budget.ChangeAmount`).
-- Her sorgu kullanıcıya göre filtrelenir: global query filter + sorguda açık `UserId` koşulu.
+- Her sorgu aktif deftere göre filtrelenir: global query filter + sorguda açık `LedgerId` koşulu. `LedgerId` hanedeyse
+  hanenin, değilse kullanıcının kimliğidir (`IUserContext.LedgerId`); `UserId` sadece kaydı kimin girdiğini gösterir.
+- Her uç oturum ister (fallback policy). `[AllowAnonymous]` sadece kayıt, giriş ve health için.
+- Yetki sunucuda kontrol edilir: başkasının kaydına işlem `ForbiddenException` (403), yok `NotFoundException` (404),
+  çakışma `ConflictException` (409).
 - "Bugün" `TimeProvider` + yapılandırılmış saat diliminden gelir, `DateTime.Now` kullanılmaz.
 - Sadece unique ihlali yakalanır (`UniqueConstraintViolationException`), diğer DB hataları yukarı fırlar.
 - Log mesajları `LoggerMessage` kaynak üreticisiyle, sabit `EventId` ile.
@@ -51,7 +56,7 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 - Modele gönderilen JSON şemalarında nullable alan olmaz (sağlayıcı uyumluluğu).
 - LLM çıkarır, kod hesaplar: tarih aritmetiği, toplamlar, yüzdeler kodda. Modelden sayı üretmesi istenmez.
 - Model çıktısı JSON schema ile kısıtlanır ve doğrulanır; kullanılamayan çıktı `AiResponseException` (422).
-- Ajan araçları `userId` parametresi almaz; kullanıcı `IUserContext`'ten gelir. Araçlar salt okunur.
+- Ajan araçları `userId`/`ledgerId` parametresi almaz; defter `IUserContext`'ten gelir. Araçlar salt okunur.
 - Prompt'lar kodda sabit olarak durur (`*Prompt.cs`) ve testlerde kontrol edilir.
 - Testler gerçek model çağırmaz: `ScriptedChatClient`, `ProgrammableChatClient`, `FakeEmbeddingGenerator`.
 
