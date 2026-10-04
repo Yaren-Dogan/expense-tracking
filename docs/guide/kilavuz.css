@@ -166,3 +166,18 @@ table.api tr.grp td { padding-top: 10px; background: none; color: var(--primary)
 .release-head .muted { margin-left: auto; font-size: 8.5pt; }
 .release ul { margin: 0; }
 .badge { padding: 1px 8px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 8pt; font-weight: 700; }
+
+/* ---------- Agents chapter ---------- */
+.agent-card { margin: 8px 0 12px; padding: 10px 12px; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 10px; break-inside: avoid; }
+.agent-card.small { margin: 0; border-left-width: 3px; font-size: 8.8pt; }
+.agent-card.small p { margin: 0 0 4px; }
+.agent-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 10.5pt; }
+.agent-head .muted { margin-left: auto; font-size: 8pt; }
+.agent-head code { font-size: 8pt; }
+.agent-dl { display: grid; grid-template-columns: 24mm 1fr; gap: 4px 10px; margin: 0; font-size: 9pt; }
+.agent-dl dt { color: var(--primary); font-weight: 600; }
+.agent-dl dd { margin: 0; }
+.agent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+table.agent-map { font-size: 8.4pt; }
+table.agent-map tr.grp td { padding-top: 8px; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--border); }
+.badge-soft { padding: 1px 7px; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: 7.6pt; font-weight: 600; }

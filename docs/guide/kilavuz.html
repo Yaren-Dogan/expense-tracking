@@ -249,6 +249,7 @@ mi, fırtına mı geliyor?</p>
       <li>Yeni ayın ilk haftasında geçen ayın değerlendirmesi ana ekranda da görünür.</li>
       <li>Rakamların hepsi kodda hesaplanır; ajan sadece hangilerinin önemli olduğunu seçer ve başlıkla tavsiyeyi yazar.</li>
       <li>Yapay zekâ kullanılamazsa değerlendirme kurallarla yazılır; kartın altında hangisinin yazdığı belirtilir.</li>
+      <li>Ajanın nasıl çalıştığı <b>Ajanlar</b> bölümünde örnek bir akışla anlatılır.</li>
     </ul>
   </div>
 </div>
@@ -268,7 +269,7 @@ mi, fırtına mı geliyor?</p>
     <p><b>Fatura ve sağlık asla kısılmaz</b>, hiçbir kategori yarısından fazla kısılmaz. Hedef istediğin sürede mümkün değilse
     plan uzatılır ve bu açıkça yazılır.</p>
     <p class="note">Plan önce sadece bir öneridir. <b>Planı uygula</b> ve onaydan sonra planın aylarındaki bütçeler yazılır
-    (hanede herkes için). Plan, yapıldığı ayın ertesi ayından başlar.</p>
+    (hanede herkes için). Plan, yapıldığı ayın ertesi ayından başlar. Hesabın nasıl yapıldığı <b>Ajanlar</b> bölümünde örnekle anlatılır.</p>
   </div>
 </div>
 </section>
@@ -523,60 +524,247 @@ ile yerel model.</p>
   <li>Benzerlik eşiği modele göre: Gemini 0,68, bge-m3 0,5. Sonuçlar her zaman aktif deftere göre filtrelenir.</li>
 </ul>
 
-<h3>Bütçe asistanı (agent)</h3>
+<h3>Ajanlar</h3>
+<p>Bütçe asistanı, ay değerlendirmesi ve birikim planlayıcı birer <b>ajandır</b>: bir döngü içinde araç seçer, sonucu görür ve
+karar verir. Nasıl çalıştıkları, araçları, güvenlik önlemleri ve örnek akışlarıyla bir sonraki bölümde anlatılır.</p>
+</section>
+
+<!-- ============================== AJANLAR ============================== -->
+<section class="page">
+<h2>Ajanlar</h2>
+
+<p class="lead">Bu projede iki tür ajan var: <b>uygulama ajanları</b> kullanıcı için çalışır (bütçe asistanı, ay değerlendirmesi,
+birikim planlayıcı); <b>geliştirme ajanları</b> uygulamayı yazarken Claude Code içinde çalışır (mimar, geliştirici, test,
+inceleme, güvenlik, migration, doküman). Bu bölüm ikisini de, nasıl çalıştıklarıyla birlikte anlatır.</p>
+
+<h3>Agent nedir, nasıl çalışır?</h3>
+<p>Normal bir model çağrısı tek seferliktir: soru gider, cevap gelir. <b>Agent (ajan)</b> ise bir hedefe ulaşmak için hangi adımı
+atacağına kendisi karar veren, araç kullanan ve sonuca bakıp devam eden bir döngüdür.</p>
+<figure>
+<svg viewBox="0 0 720 170" class="diagram" role="img" aria-label="Ajan döngüsü">
+  <rect x="10" y="55" width="110" height="60" rx="10" class="box web"/><text x="65" y="80" class="t">Hedef</text><text x="65" y="98" class="s">kullanıcı ya da iş</text>
+  <rect x="170" y="55" width="120" height="60" rx="10" class="box app"/><text x="230" y="80" class="t">Karar</text><text x="230" y="98" class="s">model: hangi araç?</text>
+  <rect x="340" y="55" width="120" height="60" rx="10" class="box inf"/><text x="400" y="80" class="t">Eylem</text><text x="400" y="98" class="s">kod aracı çalıştırır</text>
+  <rect x="510" y="55" width="110" height="60" rx="10" class="box dom"/><text x="565" y="80" class="t">Gözlem</text><text x="565" y="98" class="s">sonuç modele döner</text>
+  <rect x="640" y="55" width="75" height="60" rx="10" class="box api"/><text x="677" y="80" class="t">Bitiş</text><text x="677" y="98" class="s">cevap</text>
+  <line x1="120" y1="85" x2="168" y2="85" class="ln" marker-end="url(#arr)"/>
+  <line x1="290" y1="85" x2="338" y2="85" class="ln" marker-end="url(#arr)"/>
+  <line x1="460" y1="85" x2="508" y2="85" class="ln" marker-end="url(#arr)"/>
+  <path d="M565 55 C565 15, 230 15, 230 53" class="ln dash" marker-end="url(#arr)"/>
+  <text x="400" y="22" class="s">yeterli değilse tekrar (en fazla N tur)</text>
+  <line x1="620" y1="85" x2="638" y2="85" class="ln" marker-end="url(#arr)"/>
+  <text x="400" y="150" class="s">Model sadece karar verir; aracı uygulama çalıştırır ve sonucu doğrular.</text>
+</svg>
+</figure>
 <table>
-  <tr><th>Araç</th><th>Ne yapar</th></tr>
-  <tr><td><code>get_budget_status</code></td><td>Bugünün havası, kalan bütçe, ay sonu tahmini</td></tr>
-  <tr><td><code>get_spending_by_category</code></td><td>Tarih aralığında kategori toplamları</td></tr>
-  <tr><td><code>list_expenses</code></td><td>Harcamalar (en fazla 20), kimin girdiğiyle</td></tr>
-  <tr><td><code>search_expenses</code></td><td>Anlamsal arama (RAG)</td></tr>
+  <tr><th style="width:22%">Parça</th><th>Ne işe yarar</th><th style="width:34%">Bu projede</th></tr>
+  <tr><td><b>Model</b></td><td>Karar verir: hangi araç, hangi parametre, ne zaman bitirilecek.</td><td>Gemini (ücretsiz) ya da yerel Ollama</td></tr>
+  <tr><td><b>Araçlar</b></td><td>Modelin dünyaya dokunduğu eller. Her birinin adı, açıklaması, parametre şeması var.</td><td>Hepsi salt okunur, kodda çalışır</td></tr>
+  <tr><td><b>Bağlam</b></td><td>Hedef, önceki adımlar ve araç sonuçları; model her turda bunları görür.</td><td>Sunucu durumsuz; her istek kendi döngüsü</td></tr>
+  <tr><td><b>Sınırlar</b></td><td>En fazla kaç tur, hangi araçlar, ne zaman insana sorulacağı.</td><td>3-5 tur, yazma işlemi insan onayıyla</td></tr>
 </table>
-<p><b>Planned mod (varsayılan):</b> her adımda model, JSON şemasıyla kısıtlanmış bir plan döner (hangi araç, hangi parametre);
-aracı uygulama çalıştırır. Cevaptaki sayılar araçların kodda hesapladığı cümlelerden kurulur: <b>model karar verir, kod raporlar.</b>
-<b>Native mod:</b> modelin kendi tool calling döngüsü (güçlü modeller için). Gemini'nin araç çağrısındaki "thought signature"
-OpenAI uyumlu istemcilerde kaybolduğu için Gemini ile Planned mod kullanılır. Bir istekte en fazla 5 araç turu.</p>
+
+<h4>Bu projenin ajan ilkeleri</h4>
+<ul>
+  <li><b>Model karar verir, kod hesaplar.</b> Kullanıcının okuduğu her sayı kodda hesaplanır. Model hangi bilginin önemli olduğunu,
+    hangi kategorinin kısılacağını seçer; rakam yazmaz. Modelin metni rakam ya da bağlantı içeriyorsa kullanılmaz.</li>
+  <li><b>Planned döngü.</b> Model her adımda JSON şemasıyla kısıtlanmış bir plan döner (eylem + parametre). Şema, küçük ve ücretsiz
+    modellerde bile her zaman geçerli, çalıştırılabilir bir seçim üretilmesini sağlar. Modelin kendi araç çağırma özelliği
+    (Native mod) güçlü modeller için seçenek olarak durur.</li>
+  <li><b>Kimlik koddan gelir.</b> Hiçbir araç kullanıcı ya da defter kimliğini modelden almaz; model başka bir hanenin verisini isteyemez.</li>
+  <li><b>Kullanıcı verisi talimat değildir.</b> Harcama notları ve plan amacı modele "veri" olarak, etiketli verilir (prompt injection).</li>
+  <li><b>İnsan onayı.</b> Veri değiştiren tek ajan sonucu (birikim planını uygulamak) kullanıcının onayıyla çalışır.</li>
+  <li><b>Kural tabanlı yedek.</b> Model yoksa, kota dolmuşsa ya da cevabı kullanılamazsa ajan kurallarla aynı işi yapar.</li>
+  <li><b>Test edilebilirlik.</b> Testler gerçek model çağırmaz; sahte model her adımı senaryolaştırır, ajanın her dalı kanıtlanır.</li>
+</ul>
+</section>
+
+<section class="page">
+<h3>Ajan haritası</h3>
+<table class="agent-map">
+  <tr><th>Ajan</th><th>Tür</th><th>Kim çalıştırır</th><th>Araçlar / yetki</th><th>Çıktı</th></tr>
+  <tr class="grp"><td colspan="5">Uygulama ajanları (kullanıcı için)</td></tr>
+  <tr><td><b>Bütçe asistanı</b></td><td>Sohbet ajanı</td><td>Kullanıcı soru sorunca</td><td>4 salt okunur araç</td><td>Cevap + kullanılan araçlar</td></tr>
+  <tr><td><b>Ay değerlendirmesi</b></td><td>Proaktif ajan</td><td>Arka plan işi (ay başı) ya da kullanıcı</td><td><code>DrillDown</code></td><td>Başlık, öne çıkanlar, tavsiye + bildirim</td></tr>
+  <tr><td><b>Birikim planlayıcı</b></td><td>Planlama ajanı</td><td>Kullanıcı hedef verince</td><td><code>InspectCategory</code></td><td>Plan önerisi; onayla bütçeler</td></tr>
+  <tr class="grp"><td colspan="5">Geliştirme ajanları (Claude Code, <code>.claude/agents/</code>)</td></tr>
+  <tr><td><b>architect</b></td><td>Planlayıcı</td><td>İşe başlarken</td><td>Okuma</td><td>Uygulama planı</td></tr>
+  <tr><td><b>implementer</b></td><td>Geliştirici</td><td>Plan aşaması başına</td><td>Okuma, yazma, komut</td><td>Kod + test</td></tr>
+  <tr><td><b>tester</b></td><td>Test mühendisi</td><td><code>/test-plan</code></td><td>Okuma, yazma, komut</td><td>Senaryolar + testler</td></tr>
+  <tr><td><b>reviewer</b></td><td>Kod inceleyici</td><td><code>/review</code></td><td>Okuma, komut</td><td>Bulgular</td></tr>
+  <tr><td><b>security-reviewer</b></td><td>Güvenlik inceleyici</td><td><code>/security-review</code></td><td>Okuma, komut</td><td>Güvenlik bulguları</td></tr>
+  <tr><td><b>migration-checker</b></td><td>Veritabanı inceleyici</td><td><code>/check-migration</code></td><td>Okuma, komut</td><td>Güvenli / dikkat / tehlikeli</td></tr>
+  <tr><td><b>docs-keeper</b></td><td>Doküman sorumlusu</td><td><code>/update-guide</code></td><td>Okuma, yazma, komut</td><td>Güncel kılavuz ve PDF</td></tr>
+</table>
+
+<h3>Bütçe asistanı</h3>
+<div class="agent-card">
+  <div class="agent-head"><b>Bütçe asistanı</b><span class="badge">uygulama</span><span class="muted">POST /api/assistant/chat</span></div>
+  <dl class="agent-dl">
+    <dt>Amaç</dt><dd>Kullanıcının harcamalarıyla ilgili Türkçe sorularını, verilerine bakarak cevaplamak: "Bu ay bütçem nasıl?",
+      "Geçen ay en çok nereye harcadım?", "Kahveye ne kadar veriyorum?".</dd>
+    <dt>Araçlar</dt><dd>
+      <code>get_budget_status</code> (bugünün havası, kalan bütçe, ay sonu tahmini) ·
+      <code>get_spending_by_category</code> (tarih aralığında kategori toplamları) ·
+      <code>list_expenses</code> (en fazla 20 harcama, kimin girdiğiyle) ·
+      <code>search_expenses</code> (anlamsal arama, RAG).</dd>
+    <dt>Döngü</dt><dd>Her turda model bir plan döner (araç + tarih/kategori/sorgu). Uygulama aracı çalıştırır, sonucu ve kodda
+      hesaplanmış "özet" cümlesini modele geri verir. Model yeterli bilgi olunca <code>Answer</code> seçer. En fazla 5 tur; aynı
+      araç aynı parametreyle tekrar istenirse döngü biter.</dd>
+    <dt>Cevap</dt><dd>Araçların kodda hesapladığı özet cümlelerden kurulur; altında kullanılan araçlar listelenir.</dd>
+    <dt>Örnek</dt><dd>"Kahveye ne kadar veriyorum?" → <code>search_expenses("kahve")</code> → notunda kahve geçmeyen "Starbucks latte"
+      dahil ilgili harcamalar bulunur, toplamı ve tarih aralığını kod hesaplar → cevap.</dd>
+    <dt>Güvenlik</dt><dd>Araçlar salt okunur, defteri oturumdan alır. Harcama notları "veri, talimat değil" uyarısıyla verilir.
+      Kullanıcı başına dakikada 20 istek.</dd>
+  </dl>
+</div>
 </section>
 
 <section class="page">
 <h3>Ay değerlendirmesi ajanı</h3>
-<figure>
-<svg viewBox="0 0 720 130" class="diagram" role="img" aria-label="Değerlendirme ajanı akışı">
-  <rect x="5" y="35" width="130" height="60" rx="10" class="box inf"/><text x="70" y="60" class="t">Arka plan işi</text><text x="70" y="78" class="s">ay başında, saatlik</text>
-  <rect x="165" y="35" width="130" height="60" rx="10" class="box dom"/><text x="230" y="60" class="t">MonthFacts</text><text x="230" y="78" class="s">kod gerçekleri hesaplar</text>
-  <rect x="325" y="35" width="150" height="60" rx="10" class="box app"/><text x="400" y="60" class="t">Ajan döngüsü</text><text x="400" y="78" class="s">DrillDown ×2 → Finish</text>
-  <rect x="505" y="35" width="100" height="60" rx="10" class="box api"/><text x="555" y="60" class="t">Doğrulama</text><text x="555" y="78" class="s">rakam/bağlantı yok</text>
-  <rect x="635" y="35" width="80" height="60" rx="10" class="box web"/><text x="675" y="60" class="t">Kayıt</text><text x="675" y="78" class="s">+ bildirim</text>
-  <line x1="135" y1="65" x2="163" y2="65" class="ln" marker-end="url(#arr)"/>
-  <line x1="295" y1="65" x2="323" y2="65" class="ln" marker-end="url(#arr)"/>
-  <line x1="475" y1="65" x2="503" y2="65" class="ln" marker-end="url(#arr)"/>
-  <line x1="605" y1="65" x2="633" y2="65" class="ln" marker-end="url(#arr)"/>
-  <text x="400" y="118" class="s">Model yoksa ya da cevabı kullanılamazsa: kurallar (en önemli 3 gerçek, aya göre başlık)</text>
-</svg>
-</figure>
-<ul>
-  <li><b>Gerçekler kodda:</b> toplam ve bütçe sonucu, önceki aya göre değişim, kategori bazında büyük artış/azalış (en az ₺250 ve %25),
-    en büyük kalem, en büyük tek harcama, hanede kimin ne kadar girdiği, harcamasız gün sayısı. Her birinin kimliği
-    (<code>total</code>, <code>cat-up:Transport</code>) ve hazır cümlesi vardır.</li>
-  <li><b>Ajan:</b> JSON şemasıyla kısıtlı adımlar döner. <code>DrillDown(kategori)</code> o kategorinin bu ay ve önceki ay hangi
-    harcamalardan oluştuğunu (kod hesaplar) yeni bir gerçek olarak getirir; <code>Finish</code> ile başlık, seçilen gerçeklerin
-    kimlikleri ve tavsiyeyi verir. En fazla 4 model çağrısı.</li>
-  <li><b>Doğrulama:</b> bilinmeyen kimlik atılır; başlık/tavsiye rakam ya da bağlantı içeriyorsa kural metni kullanılır.</li>
-  <li><b>Zamanlama:</b> arka plan işi saatte bir geçen ayı değerlendirmesi olmayan defterleri bulur; her çalışmada en fazla 20
-    değerlendirme yazar (model kotası). Defter ve ay başına tek değerlendirme (unique index).</li>
-</ul>
+<div class="agent-card">
+  <div class="agent-head"><b>Ay değerlendirmesi</b><span class="badge">uygulama · proaktif</span><span class="muted">MonthReviewScheduler · POST /api/reviews/{ay}</span></div>
+  <dl class="agent-dl">
+    <dt>Amaç</dt><dd>Biten ayı kullanıcı sormadan incelemek ve kısa bir değerlendirme yazmak: başlık, öne çıkan 2-4 gerçek, tavsiye.</dd>
+    <dt>Ne zaman</dt><dd>Arka plan işi saatte bir geçen ayı değerlendirmesi olmayan defterleri bulur (her çalışmada en fazla 20,
+      model kotası için) ve üyelere bildirim gönderir. Kullanıcı geçmiş ay ekranında <b>Değerlendir</b> / <b>Yenile</b> ile de çalıştırabilir.</dd>
+    <dt>Girdi (kod)</dt><dd><code>MonthFacts</code> ayın gerçeklerini hesaplar; her birinin kimliği ve hazır cümlesi vardır:
+      <code>total</code> (toplam ve bütçe sonucu), <code>total-change</code>, <code>cat-up/cat-down/cat-new:Kategori</code> (en az ₺250 ve %25 değişim),
+      <code>top</code> (en büyük kalem), <code>biggest</code> (en büyük tek harcama), <code>members</code> (hanede kimin ne kadar girdiği),
+      <code>quiet-days</code>.</dd>
+    <dt>Araç</dt><dd><code>DrillDown(Kategori)</code>: o kategorinin bu ay ve önceki ay hangi harcamalardan oluştuğunu kod hesaplar
+      ve yeni bir gerçek olarak (<code>drill:Kategori</code>) modele verir. En fazla 2 kez.</dd>
+    <dt>Bitiş</dt><dd><code>Finish</code>: başlık (rakamsız), seçilen gerçeklerin kimlikleri, tavsiye (rakamsız). En fazla 4 model çağrısı.</dd>
+    <dt>Doğrulama</dt><dd>Bilinmeyen kimlikler atılır. Başlık ya da tavsiye rakam veya bağlantı içeriyorsa kural metni kullanılır.</dd>
+    <dt>Yedek</dt><dd>Model yoksa: en yüksek puanlı 3 gerçek, ayın "havasına" göre başlık (örn. "Parçalı bulutlu bir ay: bütçenin içinde
+      kaldın."), en çok artan esnek kategoriye göre tavsiye.</dd>
+  </dl>
+</div>
+<h4>Örnek akış</h4>
+<ol class="flow">
+  <li>Kod hesaplar: <i>"Ağustos ayında toplam ₺22.040 harcandı; ₺30.000 bütçeyle ay ₺7.960 artıyla kapandı."</i>,
+    <i>"Ulaşım harcaması bir önceki aya göre %60 arttı (₺900 → ₺1.440)."</i> ve diğerleri.</li>
+  <li>Model: <code>DrillDown(Transport)</code> → kod: <i>"Ulaşım: bu ay 1 harcama, ₺1.440; en büyükleri Taksi (₺1.440)…"</i></li>
+  <li>Model: <code>Finish</code> → başlık "Bütçenin içinde ama ulaşım hızlandı.", gerçekler <code>total</code>,
+    <code>cat-up:Transport</code>, <code>drill:Transport</code>, tavsiye "Kısa yolları yürüyerek ya da toplu taşımayla gitmeyi dene."</li>
+  <li>Kod doğrular, kaydeder (defter ve ay başına tek), üyelere "Ağustos 2026 değerlendirmen hazır: …" bildirimini yazar.</li>
+</ol>
+</section>
 
+<section class="page">
 <h3>Birikim planlayıcı ajanı</h3>
-<ul>
-  <li><b>Taban:</b> son 3 tam ayın kategori ortalamaları (harcaması olan aylara bölünür).</li>
-  <li><b>Ajan:</b> <code>InspectCategory(kategori)</code> ile kategoride en çok neye harcandığına bakar (en fazla 2 kez),
-    <code>Finish</code> ile 1-3 kategori, seviye (<code>Light</code>/<code>Medium</code>/<code>Strong</code>), gerekçe ve öneri döner.</li>
-  <li><b>Kod hesabı (<code>PlanMath</code>):</b> aylık birikim = hedef ÷ ay; birikim seçilen kategorilere seviye ağırlığıyla
-    (az %10, orta %20, çok %35 × ortalama) orantılı dağıtılır; kategori başına en fazla %50; yetmezse diğer esnek kategoriler
-    eklenir; yine yetmezse süre uzatılır (en fazla 24 ay). Fatura ve sağlık hiç kısılmaz.</li>
-  <li><b>İnsan onayı:</b> plan bir öneri olarak kaydedilir; bütçeler sadece bir üye <b>uygula</b> deyince yazılır, bir kez.</li>
-</ul>
-<p class="note">Model karar verir, kod hesaplar: iki ajanda da kullanıcının gördüğü her sayı kodda hesaplanır. Bu, küçük ve
-ücretsiz modellerde bile güvenilir sonuç verir ve test edilebilir (testler sahte modelle her adımı senaryolaştırır).</p>
+<div class="agent-card">
+  <div class="agent-head"><b>Birikim planlayıcı</b><span class="badge">uygulama · insan onaylı</span><span class="muted">POST /api/plans · /apply</span></div>
+  <dl class="agent-dl">
+    <dt>Amaç</dt><dd>"N ayda X lira biriktir" hedefi için hangi kategorilerden ne kadar kısılacağını ve yeni aylık bütçeyi önermek.</dd>
+    <dt>Girdi (kod)</dt><dd>Son 3 tam ayın kategori ortalamaları (harcaması olan aylara bölünür) ve gereken aylık birikim.
+      Kullanıcının amaç metni talimatlara değil, kullanıcı mesajına <code>&lt;amac&gt;</code> etiketiyle girer.</dd>
+    <dt>Araç</dt><dd><code>InspectCategory(Kategori)</code>: kategoride en çok neye harcandığını, notlara göre gruplu olarak kod hesaplar
+      ("Restoran, 5 kez, ₺3.100"). En fazla 2 kez.</dd>
+    <dt>Bitiş</dt><dd><code>Finish</code>: 1-3 kategori, her biri için seviye (<code>Light</code> az / <code>Medium</code> orta / <code>Strong</code> çok)
+      ve rakamsız gerekçe; bir alışkanlık önerisi.</dd>
+    <dt>Hesap (kod)</dt><dd><code>PlanMath</code>: aylık birikim = hedef ÷ ay; birikim seçilen kategorilere seviye ağırlığıyla
+      (az %10, orta %20, çok %35 × ortalama) orantılı dağıtılır; kategori başına en fazla %50; yetmezse diğer esnek kategoriler
+      eklenir; yine yetmezse süre uzatılır (en fazla 24 ay). Fatura ve Sağlık asla kısılmaz; model seçse bile atılır.</dd>
+    <dt>İnsan onayı</dt><dd>Plan önce öneri olarak kaydedilir. Bir üye <b>Planı uygula</b> ve onay derse planın aylarındaki bütçeler
+      yazılır; bir kez. Diğer üyelere bildirim gider.</dd>
+    <dt>Yedek</dt><dd>Model yoksa en büyük esnek kategoriler seçilir (ilk ikisi orta, üçüncüsü az) ve hazır gerekçeler kullanılır.</dd>
+  </dl>
+</div>
+<h4>Örnek hesap</h4>
+<p>Hedef: 4 ayda ₺4.000. Son aylar: Fatura ₺15.000, Market ₺3.100, Yemek ₺1.900, Ulaşım ₺1.170, Eğlence ₺300 → toplam ₺21.470/ay.</p>
+<ol class="flow">
+  <li>Aylık birikim = 4.000 ÷ 4 = <b>₺1.000</b>; yeni bütçe = 21.470 − 1.000 = <b>₺20.470</b>.</li>
+  <li>Model seçer: Yemek <i>orta</i> ("Restoran yerine evde yemek kolay."), Eğlence <i>çok</i>, Fatura <i>çok</i>.</li>
+  <li>Kod: Fatura atılır. Ağırlıklar Yemek 1.900×%20 = 380, Eğlence 300×%35 = 105. Eğlence en fazla yarısına (₺150) kadar kısılır,
+    kalan Yemek'e geçer → Yemek ₺1.900 → ₺1.050, Eğlence ₺300 → ₺150.</li>
+  <li>Plan Eylül'de yapıldıysa Ekim'de başlar. Kullanıcı onaylar → Ekim–Ocak bütçeleri ₺20.470 olarak yazılır.</li>
+</ol>
+</section>
+
+<section class="page">
+<h3>Geliştirme ajanları (Claude Code)</h3>
+<p>Uygulama Claude Code ile geliştirilir. <code>.claude/agents/</code> klasöründeki her dosya bir <b>alt ajan</b> tanımıdır: bir ad,
+ne zaman kullanılacağını söyleyen açıklama, izin verilen araçlar (okuma, yazma, komut çalıştırma) ve rolünün talimatı. Ana
+Claude oturumu bir işi ilgili alt ajana devreder; alt ajan kendi bağlamında çalışır ve sonucu raporlar. <code>.claude/commands/</code>
+altındaki komutlar (<code>/review</code> gibi) bu ajanları tek komutla çalıştırır.</p>
+<p>İşi uzmanlaşmış ajanlara bölmenin nedeni insan ekiplerdekiyle aynı: kodu yazan ile inceleyen ayrı olunca hatalar yakalanır;
+salt okunur ajanlar yanlışlıkla bir şeyi değiştiremez.</p>
+<figure>
+<svg viewBox="0 0 720 120" class="diagram" role="img" aria-label="Geliştirme ajanlarının sırası">
+  <rect x="5" y="35" width="90" height="50" rx="10" class="box web"/><text x="50" y="65" class="t">architect</text>
+  <rect x="110" y="35" width="100" height="50" rx="10" class="box app"/><text x="160" y="65" class="t">implementer</text>
+  <rect x="225" y="35" width="80" height="50" rx="10" class="box inf"/><text x="265" y="65" class="t">tester</text>
+  <rect x="320" y="10" width="140" height="44" rx="10" class="box api"/><text x="390" y="37" class="t">security-reviewer</text>
+  <rect x="320" y="66" width="140" height="44" rx="10" class="box api"/><text x="390" y="93" class="t">migration-checker</text>
+  <rect x="475" y="35" width="90" height="50" rx="10" class="box dom"/><text x="520" y="65" class="t">reviewer</text>
+  <rect x="580" y="35" width="135" height="50" rx="10" class="box ext"/><text x="647" y="65" class="t">docs-keeper</text>
+  <line x1="95" y1="60" x2="108" y2="60" class="ln" marker-end="url(#arr)"/>
+  <line x1="210" y1="60" x2="223" y2="60" class="ln" marker-end="url(#arr)"/>
+  <line x1="305" y1="55" x2="318" y2="35" class="ln" marker-end="url(#arr)"/>
+  <line x1="305" y1="65" x2="318" y2="85" class="ln" marker-end="url(#arr)"/>
+  <line x1="460" y1="32" x2="473" y2="52" class="ln" marker-end="url(#arr)"/>
+  <line x1="460" y1="88" x2="473" y2="68" class="ln" marker-end="url(#arr)"/>
+  <line x1="565" y1="60" x2="578" y2="60" class="ln" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Bir özelliğin yolculuğu: plan → kod → test → güvenlik ve migration incelemesi → genel inceleme → doküman.</figcaption>
+</figure>
+
+<div class="agent-grid">
+  <div class="agent-card small">
+    <div class="agent-head"><b>architect</b><span class="badge-soft">sadece okuma</span></div>
+    <p><b>Görev:</b> Yeni bir özellik için uygulama planı çıkarır; kod yazmaz.</p>
+    <p><b>Çıktı:</b> amaç, oluşturulacak/değişecek dosyalar, domain değişiklikleri, yeni kolon ve index'ler, hangi testin neyi
+      kanıtlayacağı, riskler (yarış durumu, izolasyon, saat dilimi). Belirsizlikleri tahmin etmez, soru olarak listeler.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>implementer</b><span class="badge-soft">okuma · yazma · komut</span></div>
+    <p><b>Görev:</b> Planın tek bir aşamasını kod ve testle uygular; kapsam dışına dokunmaz.</p>
+    <p><b>Kural:</b> her davranış değişikliği bir testle gelir; bitirmeden <code>dotnet build -warnaserror</code>, <code>dotnet test</code>,
+      gerekirse <code>npm run build/lint</code> çalıştırır. Kırmızı varken "bitti" demez.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>tester</b><span class="badge-soft">okuma · yazma · komut</span><code>/test-plan</code></div>
+    <p><b>Görev:</b> Kırılacak yeri bulur. Önce senaryo listesi: yetki ve izolasyon (başka hane, ayrılmış üye), zaman (ay sonu,
+      Şubat, saat dilimi), eşzamanlılık (çift tıklama), girdi sınırları, model hataları, veritabanı.</p>
+    <p><b>Çıktı:</b> eksik testleri yazar, çalıştırır; üretim kodunda hata bulursa düzeltmez, raporlar.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>reviewer</b><span class="badge-soft">okuma · komut</span><code>/review</code></div>
+    <p><b>Görev:</b> Değişikliği PRD maddeleri ve <code>docs/standards.md</code> listesiyle eşler; kayıtlı ama kullanılmayan servis,
+      filtresiz sorgu, genel <code>catch</code>, <code>DateTime.Now</code>, testsiz davranış arar.</p>
+    <p><b>Çıktı:</b> Kritik/Yüksek/Orta/Düşük bulgular, <code>dosya:satır</code> ve düzeltme önerisi.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>security-reviewer</b><span class="badge-soft">okuma · komut</span><code>/security-review</code></div>
+    <p><b>Görev:</b> Bir ailenin verisinin başkasına geçmemesi. Defter izolasyonu, sunucu tarafı yetki, kimliğin kaynağı, açık uçlar
+      ve rate limit, bilgi sızıntısı, yapay zekâ (salt okunur araçlar, prompt injection, insan onayı), gizli bilgiler, oturum.</p>
+    <p><b>Çıktı:</b> saldırı senaryosuyla (kim, neyi, nasıl) bulgular ve düzeltmeler.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>migration-checker</b><span class="badge-soft">okuma · komut</span><code>/check-migration</code></div>
+    <p><b>Görev:</b> Gerçek veriyi koruma. Veri kaybı (drop, tip daraltma, rename yerine drop+add), yeni zorunlu kolonun doldurulması,
+      mevcut veride unique ihlali, <code>Down()</code> doğruluğu, snapshot tutarlılığı, büyük tabloda kilit süresi.</p>
+    <p><b>Çıktı:</b> her migration için Güvenli / Dikkat / Tehlikeli kararı.</p>
+  </div>
+  <div class="agent-card small">
+    <div class="agent-head"><b>docs-keeper</b><span class="badge-soft">okuma · yazma · komut</span><code>/update-guide</code></div>
+    <p><b>Görev:</b> Kod değişince dokümanları aynı commit'te güncel tutar: veritabanı açıklamaları (<code>SchemaComments</code>),
+      PRD'ler, bu kılavuzun kullanım ve teknik bölümleri, ekran görüntüleri, değişiklik geçmişi; PDF'i üretip sayfa sayfa kontrol eder.</p>
+  </div>
+</div>
+
+<h4>Gerçek bir örnek</h4>
+<p>Ay değerlendirmesi ve birikim planlayıcı yazıldıktan sonra <code>security-reviewer</code> çalıştırıldı. Kritik bulgu çıkmadı
+(defter izolasyonu her sorguda doğrulandı); beş sorun bulundu ve hepsi düzeltildi:</p>
+<table>
+  <tr><th>Bulgu</th><th>Risk</th><th>Düzeltme</th></tr>
+  <tr><td>Model çağıran uçlarda istek sınırı yok</td><td>Tek kullanıcı herkesin model kotasını tüketir</td><td>Kullanıcı başına dakikada 20 istek</td></tr>
+  <tr><td>Plan amacı talimatlara giriyor</td><td>Prompt injection ile tüm üyelerin göreceği metne müdahale</td><td>Amaç kullanıcı mesajında, etiketli</td></tr>
+  <tr><td>Notlardan gelen bağlantılar</td><td>Bildirimle tüm üyelere bağlantı taşınabilir</td><td>Model metninde bağlantı/e-posta reddi</td></tr>
+  <tr><td>Gerekçe uzunluğu sınırsız</td><td>Büyük metin kaydı</td><td>200 karakter sınırı</td></tr>
+  <tr><td>Arka plan işi partilemesi</td><td>Eski cihaz defterleri gerçek haneleri bekletebilir</td><td>Üyesiz defterler partiden pay yemez</td></tr>
+</table>
 </section>
 
 <!-- ============================== 7. VERİTABANI ============================== -->
@@ -688,22 +876,8 @@ olarak döner; doğrulama hatalarında alan bazlı <code>errors</code> vardır. 
   <li><code>dotnet build -warnaserror</code>: uyarı da hata sayılır. Frontend <code>npm run build</code> (tip kontrolü) ve <code>npm run lint</code>.</li>
   <li>Her özellik tarayıcıda Playwright ile iki kullanıcılı akışla da denenir; bu kılavuzdaki ekran görüntüleri o akıştan alınır.</li>
 </ul>
-<h3>Claude geliştirme ajanları</h3>
-<p>Proje Claude Code ile geliştirilir. <code>.claude/agents/</code> altında her biri ayrı rolde, ayrı talimatla çalışan alt ajanlar
-vardır; kodu yazan ile inceleyenin ayrı olması insan ekiplerdeki code review mantığıdır.</p>
-<table>
-  <tr><th>Ajan</th><th>Komut</th><th>Ne yapar</th></tr>
-  <tr><td><code>architect</code></td><td>—</td><td>Plan çıkarır, kod yazmaz</td></tr>
-  <tr><td><code>implementer</code></td><td>—</td><td>Bir aşamayı kod ve testle uygular</td></tr>
-  <tr><td><code>tester</code></td><td><code>/test-plan</code></td><td>Uç durum senaryoları (yetki, zaman, eşzamanlılık, sınırlar, model hataları) çıkarır, eksik testleri yazar</td></tr>
-  <tr><td><code>reviewer</code></td><td><code>/review</code></td><td>PRD ve standarda karşı salt okunur inceleme</td></tr>
-  <tr><td><code>security-reviewer</code></td><td><code>/security-review</code></td><td>Defter izolasyonu, yetki, oturum, rate limit, gizli bilgi, prompt injection</td></tr>
-  <tr><td><code>migration-checker</code></td><td><code>/check-migration</code></td><td>Migration'larda veri kaybı, doldurma, unique ihlali, geri alma</td></tr>
-  <tr><td><code>docs-keeper</code></td><td><code>/update-guide</code></td><td>Bu kılavuzu, değişiklik geçmişini, PRD'leri ve veritabanı açıklamalarını günceller, PDF üretir</td></tr>
-</table>
-<p>Önerilen sıra: architect → implementer → tester → security-reviewer / migration-checker → reviewer → docs-keeper.
-Bu sürümün iki iş ajanı <code>security-reviewer</code> ile incelendi; bulunan beş sorun (model uçlarında istek sınırı, amaç
-metninin talimatlara girmesi, bağlantı filtresi, gerekçe uzunluğu, arka plan işinin partilemesi) düzeltildi.</p>
+<p>Geliştirmede kullanılan Claude Code ajanları (architect, implementer, tester, reviewer, security-reviewer, migration-checker,
+docs-keeper) <b>Ajanlar</b> bölümünde anlatılır.</p>
 
 <h3>Geliştirme komutları</h3>
 <pre>dotnet build -warnaserror

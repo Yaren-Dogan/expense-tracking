@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.7",
+    "date": "2026-10-05",
+    "title": "Ajanlar bölümü",
+    "items": [
+      "Kılavuza \"Ajanlar\" bölümü eklendi: agent nedir ve nasıl çalışır, projenin ajan ilkeleri, tüm ajanların haritası.",
+      "Uygulama ajanları (bütçe asistanı, ay değerlendirmesi, birikim planlayıcı) amaç, araçlar, döngü, doğrulama, yedek ve örnek akışlarıyla.",
+      "Geliştirme ajanları (architect, implementer, tester, reviewer, security-reviewer, migration-checker, docs-keeper) görev, yetki ve çıktılarıyla; security-reviewer'ın gerçek bulguları."
+    ]
+  },
+  {
     "version": "1.6",
     "date": "2026-10-05",
     "title": "Ajanlar: ay değerlendirmesi ve birikim planlayıcı",
