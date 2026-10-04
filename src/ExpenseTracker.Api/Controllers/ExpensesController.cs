@@ -8,6 +8,7 @@ using ExpenseTracker.Application.Features.Expenses.Queries.ParseExpense;
 using ExpenseTracker.Application.Features.Expenses.Queries.SearchExpenses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ExpenseTracker.Api.Controllers;
 
@@ -34,6 +35,7 @@ public sealed class ExpensesController(ISender mediator) : ControllerBase
     }
 
     /// <summary>Suggests an expense from a sentence. Does not save anything.</summary>
+    [EnableRateLimiting(RateLimitPolicies.Ai)]
     [HttpPost("parse")]
     public async Task<ActionResult<ParsedExpenseDto>> Parse(ParseExpenseRequest request, CancellationToken ct) =>
         Ok(await mediator.Send(new ParseExpenseQuery(request.Text, request.Today), ct));

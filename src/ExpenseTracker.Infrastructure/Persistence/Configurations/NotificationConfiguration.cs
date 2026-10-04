@@ -16,6 +16,6 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
 
         builder.HasIndex(n => new { n.UserId, n.CreatedAt });
         // Each kind of notice about a task reaches a user once; the reminder job relies on it to stay idempotent.
-        builder.HasIndex(n => new { n.UserId, n.TaskId, n.Kind }).IsUnique();
+        builder.HasIndex(n => new { n.UserId, n.SubjectId, n.Kind }).IsUnique();
     }
 }

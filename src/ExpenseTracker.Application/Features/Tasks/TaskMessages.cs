@@ -1,25 +1,14 @@
-using System.Globalization;
+using ExpenseTracker.Application.Common.Text;
 using ExpenseTracker.Domain.Tasks;
 
 namespace ExpenseTracker.Application.Features.Tasks;
 
-/// <summary>
-/// Notification texts. Dates and money are formatted by hand: container images may run without ICU culture data,
-/// and the messages must read the same everywhere.
-/// </summary>
+/// <summary>Notification texts for tasks.</summary>
 public static class TaskMessages
 {
-    private static readonly string[] Months =
-        ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    public static string Date(DateOnly date) => TurkishText.Date(date);
 
-    public static string Date(DateOnly date) => $"{date.Day} {Months[date.Month - 1]}";
-
-    public static string Money(decimal amount)
-    {
-        // 1234.5 -> "1,234.50" -> "1.234,50"
-        var invariant = amount.ToString("N2", CultureInfo.InvariantCulture);
-        return "₺" + invariant.Replace(",", "_").Replace(".", ",").Replace("_", ".");
-    }
+    public static string Money(decimal amount) => TurkishText.Money(amount);
 
     public static string Assigned(string byName, HouseholdTask task) =>
         $"{byName} sana bir görev verdi: {task.Title} · son gün {Date(task.DueOn)}";

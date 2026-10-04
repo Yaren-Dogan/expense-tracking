@@ -12,6 +12,8 @@ using System.ClientModel;
 using ExpenseTracker.Infrastructure.Time;
 using ExpenseTracker.Application.Features.Tasks;
 using ExpenseTracker.Infrastructure.Tasks;
+using ExpenseTracker.Application.Features.Insights;
+using ExpenseTracker.Infrastructure.Insights;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +49,13 @@ public static class DependencyInjection
             .Validate(o => o.ReminderIntervalMinutes >= 1, "Tasks:ReminderIntervalMinutes must be at least 1.")
             .ValidateOnStart();
         services.AddHostedService<TaskReminderScheduler>();
+
+        services.AddOptions<InsightOptions>()
+            .Bind(configuration.GetSection(InsightOptions.SectionName))
+            .Validate(o => o.ReviewIntervalMinutes >= 1, "Insights:ReviewIntervalMinutes must be at least 1.")
+            .Validate(o => o.ReviewBatchSize is >= 1 and <= 500, "Insights:ReviewBatchSize must be 1-500.")
+            .ValidateOnStart();
+        services.AddHostedService<MonthReviewScheduler>();
 
         services.AddAi(configuration);
 

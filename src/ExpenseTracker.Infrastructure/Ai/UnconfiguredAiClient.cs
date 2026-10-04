@@ -1,3 +1,4 @@
+using ExpenseTracker.Application.Common.Ai;
 using ExpenseTracker.Application.Common.Exceptions;
 using Microsoft.Extensions.AI;
 
@@ -24,7 +25,11 @@ internal sealed class UnconfiguredAiClient : IChatClient, IEmbeddingGenerator<st
         IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default) =>
         throw NotConfigured();
 
-    public object? GetService(Type serviceType, object? serviceKey = null) => null;
+    private static readonly ChatClientMetadata Metadata = new(AiModel.UnconfiguredProvider);
+
+    // Lets features with a rule-based fallback see that no model is configured before calling it.
+    public object? GetService(Type serviceType, object? serviceKey = null) =>
+        serviceKey is null && serviceType == typeof(ChatClientMetadata) ? Metadata : null;
 
     public void Dispose() { }
 }

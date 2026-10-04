@@ -36,10 +36,10 @@ public sealed class SendTaskRemindersCommandHandler(
 
         var taskIds = tasks.Select(t => t.Id).ToList();
         var sent = (await db.Notifications.IgnoreQueryFilters()
-                .Where(n => taskIds.Contains(n.TaskId) && (n.Kind == NotificationKind.TaskDueSoon || n.Kind == NotificationKind.TaskOverdue))
-                .Select(n => new { n.UserId, n.TaskId, n.Kind })
+                .Where(n => taskIds.Contains(n.SubjectId) && (n.Kind == NotificationKind.TaskDueSoon || n.Kind == NotificationKind.TaskOverdue))
+                .Select(n => new { n.UserId, n.SubjectId, n.Kind })
                 .ToListAsync(cancellationToken))
-            .Select(n => (n.UserId, n.TaskId, n.Kind))
+            .Select(n => (n.UserId, n.SubjectId, n.Kind))
             .ToHashSet();
 
         var created = 0;

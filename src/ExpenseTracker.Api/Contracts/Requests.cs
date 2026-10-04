@@ -34,3 +34,5 @@ public sealed record CreateTaskRequest(
 
 /// <param name="Amount">Optional: when given, the payment is also recorded as an expense.</param>
 public sealed record CompleteTaskRequest(decimal? Amount);
+
+public sealed record CreateBudgetPlanRequest(decimal GoalAmount, int Months, string? Purpose);

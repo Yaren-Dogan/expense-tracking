@@ -1,9 +1,11 @@
 using ExpenseTracker.Domain.Entities;
 using ExpenseTracker.Domain.Households;
+using ExpenseTracker.Domain.Insights;
 using ExpenseTracker.Domain.Notifications;
 using ExpenseTracker.Domain.Tasks;
 using ExpenseTracker.Infrastructure.Ai;
 using ExpenseTracker.Infrastructure.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -98,13 +100,13 @@ internal static class SchemaComments
             });
 
         Document<Notification>(model,
-            "Uygulama içi bildirimler (zil ikonu). Kullanıcı ve görev başına her türden en fazla bir tane (unique: user_id, task_id, kind).",
+            "Uygulama içi bildirimler (zil ikonu). Kullanıcı ve konu başına her türden en fazla bir tane (unique: user_id, subject_id, kind).",
             new()
             {
                 [nameof(Notification.Id)] = Id,
                 [nameof(Notification.UserId)] = "Bildirimi alacak kullanıcı. Herkes sadece kendi bildirimlerini görür.",
-                [nameof(Notification.Kind)] = "TaskAssigned, TaskDueSoon, TaskOverdue ya da TaskCompleted.",
-                [nameof(Notification.TaskId)] = "İlgili görev (tasks.id). Görev silinse de bildirim kalır.",
+                [nameof(Notification.Kind)] = "TaskAssigned, TaskDueSoon, TaskOverdue, TaskCompleted, MonthReviewReady ya da BudgetPlanApplied.",
+                [nameof(Notification.SubjectId)] = "Bildirimin konusu: görev bildirimlerinde tasks.id, ay değerlendirmesinde month_reviews.id, planda budget_plans.id. Konu silinse de bildirim kalır.",
                 [nameof(Notification.Message)] = "Olay anında yazılan Türkçe metin, örn. \"Yaren sana bir görev verdi: ...\".",
                 [nameof(Notification.ReadAt)] = "Okunma anı; boşsa okunmamış (zilde sayılır).",
                 [nameof(Notification.CreatedAt)] = CreatedAt,
@@ -119,6 +121,55 @@ internal static class SchemaComments
                 [nameof(ExpenseEmbedding.Embedding)] = "\"<Kategori>: <not>\" metninin 1024 boyutlu vektörü. HNSW index, cosine mesafesi.",
                 [nameof(ExpenseEmbedding.Model)] = "Vektörü üreten model. Model değişince vektör yeniden üretilir.",
                 [nameof(ExpenseEmbedding.IndexedAt)] = "Vektörün üretildiği an.",
+            });
+
+        Document<MonthReview>(model,
+            "Ay değerlendirmeleri: ay bitince değerlendirme ajanının yazdığı özet. Defter ve ay başına bir tane (unique: ledger_id, year, month).",
+            new()
+            {
+                [nameof(MonthReview.Id)] = Id,
+                [nameof(MonthReview.LedgerId)] = Ledger,
+                [nameof(MonthReview.Year)] = "Değerlendirilen ayın yılı.",
+                [nameof(MonthReview.Month)] = "Değerlendirilen ay (1-12).",
+                [nameof(MonthReview.Headline)] = "Ayı özetleyen tek cümle. Model yazdıysa rakam içermez (rakamlar sadece koddan gelir).",
+                ["_highlights"] = "Öne çıkan gerçekler (en fazla 4 cümle). Cümleleri kod hesaplar; model hangilerinin önemli olduğunu seçer.",
+                [nameof(MonthReview.Tip)] = "Önümüzdeki ay için tek tavsiye.",
+                [nameof(MonthReview.GeneratedBy)] = "Değerlendirmeyi yazan model adı; model yoksa ya da cevabı kullanılamadıysa \"kurallar\".",
+                [nameof(MonthReview.CreatedAt)] = CreatedAt,
+                [nameof(MonthReview.UpdatedAt)] = "Değerlendirme yenilendiyse son yenilenme anı (UTC).",
+            });
+
+        Document<BudgetPlan>(model,
+            "Birikim planları: \"N ayda X lira biriktir\" hedefi için planlayıcı ajanın önerisi. Bir üye uygulayana kadar hiçbir şey değişmez.",
+            new()
+            {
+                [nameof(BudgetPlan.Id)] = Id,
+                [nameof(BudgetPlan.LedgerId)] = Ledger,
+                [nameof(BudgetPlan.CreatedById)] = "Planı isteyen kullanıcı.",
+                [nameof(BudgetPlan.Purpose)] = "Hedefin amacı, örn. \"Yaz tatili\" (isteğe bağlı, en fazla 100 karakter).",
+                [nameof(BudgetPlan.GoalAmount)] = "Biriktirilecek toplam tutar, TRY.",
+                [nameof(BudgetPlan.RequestedMonths)] = "Kullanıcının istediği süre (ay).",
+                [nameof(BudgetPlan.Months)] = "Planın gerçek süresi. Hedef istenen sürede mümkün değilse uzatılır.",
+                [nameof(BudgetPlan.StartYear)] = "Planın başladığı ayın yılı (planın yapıldığı ayın ertesi ayı).",
+                [nameof(BudgetPlan.StartMonth)] = "Planın başladığı ay (1-12).",
+                [nameof(BudgetPlan.BaselineMonthly)] = "Son tam ayların aylık ortalama harcaması; plan buna göre hesaplanır.",
+                [nameof(BudgetPlan.MonthlyBudget)] = "Planın her ay için önerdiği bütçe = ortalama − aylık birikim.",
+                [nameof(BudgetPlan.Cuts)] = "Kısılacak kategoriler (JSON): kategori, seviye, mevcut ortalama, hedef, gerekçe. Tutarları kod hesaplar.",
+                [nameof(BudgetPlan.Advice)] = "Hedef için alışkanlık önerisi.",
+                [nameof(BudgetPlan.GeneratedBy)] = "Kategorileri seçen model adı ya da \"kurallar\".",
+                [nameof(BudgetPlan.AppliedAt)] = "Planın uygulandığı an; boşsa sadece öneri. Uygulanınca planlanan ayların bütçesi yazılır.",
+                [nameof(BudgetPlan.AppliedById)] = "Planı uygulayan kullanıcı.",
+                [nameof(BudgetPlan.CreatedAt)] = CreatedAt,
+                [nameof(BudgetPlan.UpdatedAt)] = UpdatedAt,
+            });
+
+        Document<DataProtectionKey>(model,
+            "Oturum cookie'lerini şifreleyen anahtarlar (ASP.NET Core Data Protection). Veritabanında durur ki güncelleme sonrası kimsenin oturumu kapanmasın.",
+            new()
+            {
+                [nameof(DataProtectionKey.Id)] = "Birincil anahtar.",
+                [nameof(DataProtectionKey.FriendlyName)] = "Anahtarın adı.",
+                [nameof(DataProtectionKey.Xml)] = "Anahtarın kendisi (XML). Gizli bilgidir; dışarı verilmemeli.",
             });
 
         DocumentIdentity(model);

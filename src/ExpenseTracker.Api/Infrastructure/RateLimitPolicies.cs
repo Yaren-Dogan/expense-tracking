@@ -13,15 +13,20 @@ public static class RateLimitPolicies
     /// <summary>Invite preview/join, per user: makes guessing invite codes impractical.</summary>
     public const string Invites = "invites";
 
+    /// <summary>Endpoints that call the model, per user: one user cannot use up the provider quota everyone shares.</summary>
+    public const string Ai = "ai";
+
     public static IServiceCollection AddAppRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
         var perMinute = configuration.GetValue("RateLimits:PerMinute", 10);
+        var aiPerMinute = configuration.GetValue("RateLimits:AiPerMinute", 20);
 
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.AddPolicy(Auth, context => FixedWindow(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", perMinute));
             options.AddPolicy(Invites, context => FixedWindow(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous", perMinute));
+            options.AddPolicy(Ai, context => FixedWindow(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous", aiPerMinute));
             options.OnRejected = async (context, ct) =>
             {
                 await context.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails

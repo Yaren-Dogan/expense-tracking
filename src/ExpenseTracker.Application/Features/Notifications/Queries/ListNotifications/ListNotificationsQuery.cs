@@ -21,7 +21,7 @@ public sealed class ListNotificationsQueryHandler(IAppDbContext db, IUserContext
         var items = await mine
             .OrderByDescending(n => n.CreatedAt)
             .Take(Limit)
-            .Select(n => new NotificationDto(n.Id, n.Kind, n.Message, n.TaskId, n.CreatedAt, n.ReadAt != null))
+            .Select(n => new NotificationDto(n.Id, n.Kind, n.Message, n.SubjectId, n.CreatedAt, n.ReadAt != null))
             .ToListAsync(cancellationToken);
 
         return new NotificationListDto(unread, items);

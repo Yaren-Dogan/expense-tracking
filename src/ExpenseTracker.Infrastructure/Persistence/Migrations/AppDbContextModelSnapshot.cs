@@ -229,6 +229,192 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ExpenseTracker.Domain.Insights.BudgetPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
+
+                    b.Property<string>("Advice")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("advice")
+                        .HasComment("Hedef için alışkanlık önerisi.");
+
+                    b.Property<DateTimeOffset?>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at")
+                        .HasComment("Planın uygulandığı an; boşsa sadece öneri. Uygulanınca planlanan ayların bütçesi yazılır.");
+
+                    b.Property<Guid?>("AppliedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("applied_by_id")
+                        .HasComment("Planı uygulayan kullanıcı.");
+
+                    b.Property<decimal>("BaselineMonthly")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("baseline_monthly")
+                        .HasComment("Son tam ayların aylık ortalama harcaması; plan buna göre hesaplanır.");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_id")
+                        .HasComment("Planı isteyen kullanıcı.");
+
+                    b.Property<string>("Cuts")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("cuts")
+                        .HasComment("Kısılacak kategoriler (JSON): kategori, seviye, mevcut ortalama, hedef, gerekçe. Tutarları kod hesaplar.");
+
+                    b.Property<string>("GeneratedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("generated_by")
+                        .HasComment("Kategorileri seçen model adı ya da \"kurallar\".");
+
+                    b.Property<decimal>("GoalAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("goal_amount")
+                        .HasComment("Biriktirilecek toplam tutar, TRY.");
+
+                    b.Property<Guid>("LedgerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ledger_id")
+                        .HasComment("Kaydın ait olduğu defter: kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Tüm sorgular bu kolona göre filtrelenir.");
+
+                    b.Property<decimal>("MonthlyBudget")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("monthly_budget")
+                        .HasComment("Planın her ay için önerdiği bütçe = ortalama − aylık birikim.");
+
+                    b.Property<int>("Months")
+                        .HasColumnType("integer")
+                        .HasColumnName("months")
+                        .HasComment("Planın gerçek süresi. Hedef istenen sürede mümkün değilse uzatılır.");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("purpose")
+                        .HasComment("Hedefin amacı, örn. \"Yaz tatili\" (isteğe bağlı, en fazla 100 karakter).");
+
+                    b.Property<int>("RequestedMonths")
+                        .HasColumnType("integer")
+                        .HasColumnName("requested_months")
+                        .HasComment("Kullanıcının istediği süre (ay).");
+
+                    b.Property<int>("StartMonth")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_month")
+                        .HasComment("Planın başladığı ay (1-12).");
+
+                    b.Property<int>("StartYear")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_year")
+                        .HasComment("Planın başladığı ayın yılı (planın yapıldığı ayın ertesi ayı).");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
+
+                    b.HasKey("Id")
+                        .HasName("pk_budget_plans");
+
+                    b.HasIndex("LedgerId", "CreatedAt")
+                        .HasDatabaseName("ix_budget_plans_ledger_id_created_at");
+
+                    b.ToTable("budget_plans", null, t =>
+                        {
+                            t.HasComment("Birikim planları: \"N ayda X lira biriktir\" hedefi için planlayıcı ajanın önerisi. Bir üye uygulayana kadar hiçbir şey değişmez.");
+                        });
+                });
+
+            modelBuilder.Entity("ExpenseTracker.Domain.Insights.MonthReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
+
+                    b.Property<string>("GeneratedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("generated_by")
+                        .HasComment("Değerlendirmeyi yazan model adı; model yoksa ya da cevabı kullanılamadıysa \"kurallar\".");
+
+                    b.Property<string>("Headline")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("headline")
+                        .HasComment("Ayı özetleyen tek cümle. Model yazdıysa rakam içermez (rakamlar sadece koddan gelir).");
+
+                    b.Property<Guid>("LedgerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ledger_id")
+                        .HasComment("Kaydın ait olduğu defter: kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Tüm sorgular bu kolona göre filtrelenir.");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer")
+                        .HasColumnName("month")
+                        .HasComment("Değerlendirilen ay (1-12).");
+
+                    b.Property<string>("Tip")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("tip")
+                        .HasComment("Önümüzdeki ay için tek tavsiye.");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasComment("Değerlendirme yenilendiyse son yenilenme anı (UTC).");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("year")
+                        .HasComment("Değerlendirilen ayın yılı.");
+
+                    b.PrimitiveCollection<string[]>("_highlights")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("highlights")
+                        .HasComment("Öne çıkan gerçekler (en fazla 4 cümle). Cümleleri kod hesaplar; model hangilerinin önemli olduğunu seçer.");
+
+                    b.HasKey("Id")
+                        .HasName("pk_month_reviews");
+
+                    b.HasIndex("LedgerId", "Year", "Month")
+                        .IsUnique()
+                        .HasDatabaseName("ix_month_reviews_ledger_id_year_month");
+
+                    b.ToTable("month_reviews", null, t =>
+                        {
+                            t.HasComment("Ay değerlendirmeleri: ay bitince değerlendirme ajanının yazdığı özet. Defter ve ay başına bir tane (unique: ledger_id, year, month).");
+                        });
+                });
+
             modelBuilder.Entity("ExpenseTracker.Domain.Notifications.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -246,7 +432,7 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("kind")
-                        .HasComment("TaskAssigned, TaskDueSoon, TaskOverdue ya da TaskCompleted.");
+                        .HasComment("TaskAssigned, TaskDueSoon, TaskOverdue, TaskCompleted, MonthReviewReady ya da BudgetPlanApplied.");
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -260,10 +446,10 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .HasColumnName("read_at")
                         .HasComment("Okunma anı; boşsa okunmamış (zilde sayılır).");
 
-                    b.Property<Guid>("TaskId")
+                    b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid")
-                        .HasColumnName("task_id")
-                        .HasComment("İlgili görev (tasks.id). Görev silinse de bildirim kalır.");
+                        .HasColumnName("subject_id")
+                        .HasComment("Bildirimin konusu: görev bildirimlerinde tasks.id, ay değerlendirmesinde month_reviews.id, planda budget_plans.id. Konu silinse de bildirim kalır.");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -281,13 +467,13 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "CreatedAt")
                         .HasDatabaseName("ix_notifications_user_id_created_at");
 
-                    b.HasIndex("UserId", "TaskId", "Kind")
+                    b.HasIndex("UserId", "SubjectId", "Kind")
                         .IsUnique()
-                        .HasDatabaseName("ix_notifications_user_id_task_id_kind");
+                        .HasDatabaseName("ix_notifications_user_id_subject_id_kind");
 
                     b.ToTable("notifications", null, t =>
                         {
-                            t.HasComment("Uygulama içi bildirimler (zil ikonu). Kullanıcı ve görev başına her türden en fazla bir tane (unique: user_id, task_id, kind).");
+                            t.HasComment("Uygulama içi bildirimler (zil ikonu). Kullanıcı ve konu başına her türden en fazla bir tane (unique: user_id, subject_id, kind).");
                         });
                 });
 
@@ -542,6 +728,35 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUsers", null, t =>
                         {
                             t.HasComment("Kullanıcı hesapları (ASP.NET Core Identity). Şifre düz metin değil, PBKDF2 hash olarak saklanır.");
+                        });
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar.");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text")
+                        .HasColumnName("friendly_name")
+                        .HasComment("Anahtarın adı.");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text")
+                        .HasColumnName("xml")
+                        .HasComment("Anahtarın kendisi (XML). Gizli bilgidir; dışarı verilmemeli.");
+
+                    b.HasKey("Id")
+                        .HasName("pk_data_protection_keys");
+
+                    b.ToTable("data_protection_keys", null, t =>
+                        {
+                            t.HasComment("Oturum cookie'lerini şifreleyen anahtarlar (ASP.NET Core Data Protection). Veritabanında durur ki güncelleme sonrası kimsenin oturumu kapanmasın.");
                         });
                 });
 

@@ -3,10 +3,12 @@ using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Domain.Common;
 using ExpenseTracker.Domain.Entities;
 using ExpenseTracker.Domain.Households;
+using ExpenseTracker.Domain.Insights;
 using ExpenseTracker.Domain.Notifications;
 using ExpenseTracker.Domain.Tasks;
 using ExpenseTracker.Infrastructure.Ai;
 using ExpenseTracker.Infrastructure.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +20,18 @@ public sealed class AppDbContext(
     DbContextOptions<AppDbContext> options,
     IUserContext userContext,
     TimeProvider timeProvider)
-    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IAppDbContext
+    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IAppDbContext, IDataProtectionKeyContext
 {
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<Household> Households => Set<Household>();
     public DbSet<HouseholdTask> Tasks => Set<HouseholdTask>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<MonthReview> MonthReviews => Set<MonthReview>();
+    public DbSet<BudgetPlan> BudgetPlans => Set<BudgetPlan>();
+
+    // Keys that encrypt sign-in cookies. In the database (not the container's disk) so a rebuild does not sign everyone out.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     // Not on IAppDbContext: only Infrastructure's search and indexer touch the vector index.
     public DbSet<ExpenseEmbedding> ExpenseEmbeddings => Set<ExpenseEmbedding>();
@@ -47,6 +54,8 @@ public sealed class AppDbContext(
         modelBuilder.Entity<Budget>().HasQueryFilter(b => b.LedgerId == CurrentLedgerId);
         modelBuilder.Entity<HouseholdTask>().HasQueryFilter(t => t.LedgerId == CurrentLedgerId);
         modelBuilder.Entity<Notification>().HasQueryFilter(n => n.UserId == CurrentUserId);
+        modelBuilder.Entity<MonthReview>().HasQueryFilter(r => r.LedgerId == CurrentLedgerId);
+        modelBuilder.Entity<BudgetPlan>().HasQueryFilter(p => p.LedgerId == CurrentLedgerId);
 
         SchemaComments.Apply(modelBuilder);
     }

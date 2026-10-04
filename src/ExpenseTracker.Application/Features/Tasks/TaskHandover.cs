@@ -33,7 +33,7 @@ internal static class TaskHandover
         // The notification filter is scoped to the signed-in user (the leaver or remover); these are the owner's.
         var alreadyTold = (await db.Notifications.IgnoreQueryFilters()
                 .Where(n => n.UserId == owner.UserId && n.Kind == NotificationKind.TaskAssigned)
-                .Select(n => n.TaskId)
+                .Select(n => n.SubjectId)
                 .ToListAsync(ct))
             .ToHashSet();
 

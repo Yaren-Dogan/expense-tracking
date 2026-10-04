@@ -9,6 +9,7 @@ using ExpenseTracker.Infrastructure;
 using ExpenseTracker.Infrastructure.Identity;
 using ExpenseTracker.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
@@ -49,6 +50,10 @@ builder.Services
     .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
+// Cookie encryption keys live in the database: rebuilding the container must not sign everyone out.
+builder.Services.AddDataProtection()
+    .SetApplicationName("butce-hava-durumu")
+    .PersistKeysToDbContext<AppDbContext>();
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "bhd.auth";

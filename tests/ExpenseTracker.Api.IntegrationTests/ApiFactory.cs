@@ -47,6 +47,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             .Send(new ExpenseTracker.Application.Features.Tasks.Commands.SendTaskReminders.SendTaskRemindersCommand());
     }
 
+    /// <summary>Runs the monthly review job once, as its background scheduler would (off in tests).</summary>
+    public async Task<int> RunMonthReviewsAsync()
+    {
+        await using var scope = Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<ISender>()
+            .Send(new ExpenseTracker.Application.Features.Insights.Reviews.Commands.GenerateDueMonthReviews.GenerateDueMonthReviewsCommand());
+    }
+
     public new async Task DisposeAsync()
     {
         await base.DisposeAsync();
@@ -61,15 +69,18 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Ai:EmbeddingModel", "fake-embeddings");
         // Every test registers users from the same in-memory "IP"; production limits would throttle the suite.
         builder.UseSetting("RateLimits:PerMinute", "100000");
+        builder.UseSetting("RateLimits:AiPerMinute", "100000");
         // The fake's bag-of-words vectors score lower than a real model; the threshold is tuned for it.
         builder.UseSetting("Ai:MinSimilarity", "0.3");
+        // The shared database holds every test's ledgers; the monthly job must reach this test's one in a single run.
+        builder.UseSetting("Insights:ReviewBatchSize", "500");
 
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);
             // Tests trigger reminders explicitly, so a background run can never race an assertion.
-            foreach (var scheduler in services.Where(d => d.ServiceType == typeof(IHostedService)
-                         && d.ImplementationType == typeof(ExpenseTracker.Infrastructure.Tasks.TaskReminderScheduler)).ToList())
+            Type[] schedulers = [typeof(ExpenseTracker.Infrastructure.Tasks.TaskReminderScheduler), typeof(ExpenseTracker.Infrastructure.Insights.MonthReviewScheduler)];
+            foreach (var scheduler in services.Where(d => d.ServiceType == typeof(IHostedService) && schedulers.Contains(d.ImplementationType)).ToList())
                 services.Remove(scheduler);
             services.AddSingleton<IChatClient>(Model);
             services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>, FakeEmbeddingGenerator>();

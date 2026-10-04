@@ -59,4 +59,25 @@ internal static partial class ApplicationLog
     [LoggerMessage(EventId = 1305, EventName = "TasksHandedOver", Level = LogLevel.Information,
         Message = "{Count} open tasks of {LeaverId} handed to {OwnerId} in household {HouseholdId}")]
     public static partial void TasksHandedOver(this ILogger logger, int count, Guid leaverId, Guid ownerId, Guid householdId);
+
+    [LoggerMessage(EventId = 1401, EventName = "MonthReviewGenerated", Level = LogLevel.Information,
+        Message = "Month review for {Month} written for ledger {LedgerId} by {GeneratedBy}")]
+    public static partial void MonthReviewGenerated(this ILogger logger, Guid ledgerId, string month, string generatedBy);
+
+    [LoggerMessage(EventId = 1402, EventName = "DueMonthReviewsGenerated", Level = LogLevel.Information,
+        Message = "{Count} month reviews written for {Month}")]
+    public static partial void DueMonthReviewsGenerated(this ILogger logger, int count, string month);
+
+    // Only the exception type: provider messages can echo request content.
+    [LoggerMessage(EventId = 1403, EventName = "InsightModelUnavailable", Level = LogLevel.Warning,
+        Message = "Model unavailable for {Feature} ({ExceptionType}); the rule-based version was used")]
+    public static partial void InsightModelUnavailable(this ILogger logger, string feature, string exceptionType);
+
+    [LoggerMessage(EventId = 1404, EventName = "BudgetPlanCreated", Level = LogLevel.Information,
+        Message = "Budget plan {PlanId} created in ledger {LedgerId} for {Months} months by {GeneratedBy}")]
+    public static partial void BudgetPlanCreated(this ILogger logger, Guid planId, Guid ledgerId, int months, string generatedBy);
+
+    [LoggerMessage(EventId = 1405, EventName = "BudgetPlanApplied", Level = LogLevel.Information,
+        Message = "Budget plan {PlanId} applied in ledger {LedgerId}: {Months} budgets set")]
+    public static partial void BudgetPlanApplied(this ILogger logger, Guid planId, Guid ledgerId, int months);
 }

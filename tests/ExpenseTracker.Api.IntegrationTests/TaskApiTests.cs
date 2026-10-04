@@ -54,7 +54,7 @@ public class TaskApiTests(ApiFactory factory)
         inbox.Items.Single().Should().BeEquivalentTo(new
         {
             Kind = NotificationKind.TaskAssigned,
-            TaskId = task.Id,
+            SubjectId = task.Id,
             Message = "Yaren sana bir görev verdi: İnternet faturası · son gün 12 Ekim",
             IsRead = false
         });
@@ -157,11 +157,11 @@ public class TaskApiTests(ApiFactory factory)
         await factory.RunTaskRemindersAsync();
 
         var mine = (await Notifications(f.Ahmet))!.Items;
-        mine.Where(n => n.TaskId == soon.Id && n.Kind == NotificationKind.TaskDueSoon).Should().ContainSingle()
+        mine.Where(n => n.SubjectId == soon.Id && n.Kind == NotificationKind.TaskDueSoon).Should().ContainSingle()
             .Which.Message.Should().Be("Doğalgaz faturası için son gün 2 gün sonra (2 Ekim)");
-        mine.Where(n => n.TaskId == late.Id && n.Kind == NotificationKind.TaskOverdue).Should().ContainSingle()
+        mine.Where(n => n.SubjectId == late.Id && n.Kind == NotificationKind.TaskOverdue).Should().ContainSingle()
             .Which.Message.Should().Be("Kira gecikti: son gün 28 Eylül idi");
-        mine.Should().NotContain(n => n.TaskId == later.Id && n.Kind != NotificationKind.TaskAssigned, "20 Ekim is more than 3 days away");
+        mine.Should().NotContain(n => n.SubjectId == later.Id && n.Kind != NotificationKind.TaskAssigned, "20 Ekim is more than 3 days away");
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class TaskApiTests(ApiFactory factory)
         open.Id.Should().Be(task.Id);
         open.AssigneeId.Should().Be(f.YarenId);
         (await Notifications(f.Yaren))!.Items.Should().ContainSingle(n =>
-            n.TaskId == task.Id && n.Message.StartsWith("Ahmet haneden ayrıldı, görevi sana geçti: İnternet faturası"));
+            n.SubjectId == task.Id && n.Message.StartsWith("Ahmet haneden ayrıldı, görevi sana geçti: İnternet faturası"));
         (await Tasks(f.Ahmet))!.Open.Should().BeEmpty("back in his personal ledger");
     }
 
