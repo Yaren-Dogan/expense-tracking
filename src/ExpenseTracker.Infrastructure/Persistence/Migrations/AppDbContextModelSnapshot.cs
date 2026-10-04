@@ -28,32 +28,39 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
-                        .HasColumnName("amount");
+                        .HasColumnName("amount")
+                        .HasComment("O ay harcanması planlanan toplam tutar, TRY. Günlük pay buna göre hesaplanır.");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
 
                     b.Property<Guid>("LedgerId")
                         .HasColumnType("uuid")
-                        .HasColumnName("ledger_id");
+                        .HasColumnName("ledger_id")
+                        .HasComment("Kaydın ait olduğu defter: kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Tüm sorgular bu kolona göre filtrelenir.");
 
                     b.Property<int>("Month")
                         .HasColumnType("integer")
-                        .HasColumnName("month");
+                        .HasColumnName("month")
+                        .HasComment("Bütçenin ayı (1-12).");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
 
                     b.Property<int>("Year")
                         .HasColumnType("integer")
-                        .HasColumnName("year");
+                        .HasColumnName("year")
+                        .HasComment("Bütçenin yılı.");
 
                     b.HasKey("Id")
                         .HasName("pk_budgets");
@@ -62,55 +69,68 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_budgets_ledger_id_year_month");
 
-                    b.ToTable("budgets", (string)null);
+                    b.ToTable("budgets", null, t =>
+                        {
+                            t.HasComment("Aylık bütçeler. Bir defterin her ayı için en fazla bir bütçe (unique: ledger_id, year, month).");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Entities.Expense", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
-                        .HasColumnName("amount");
+                        .HasColumnName("amount")
+                        .HasComment("Tutar, TRY. 0'dan büyük, en fazla 1.000.000, iki ondalık.");
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("category");
+                        .HasColumnName("category")
+                        .HasComment("Kategori: Market, Food, Transport, Bills, Entertainment, Health, Clothing, Other.");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
 
                     b.Property<string>("IdempotencyKey")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("idempotency_key");
+                        .HasColumnName("idempotency_key")
+                        .HasComment("İstemcinin gönderdiği Idempotency-Key. Aynı anahtarla tekrar gelen istek yeni kayıt açmaz.");
 
                     b.Property<Guid>("LedgerId")
                         .HasColumnType("uuid")
-                        .HasColumnName("ledger_id");
+                        .HasColumnName("ledger_id")
+                        .HasComment("Kaydın ait olduğu defter: kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Tüm sorgular bu kolona göre filtrelenir.");
 
                     b.Property<string>("Note")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("note");
+                        .HasColumnName("note")
+                        .HasComment("Serbest açıklama (en fazla 200 karakter). Anlamsal aramada kullanılır.");
 
                     b.Property<DateOnly>("SpentOn")
                         .HasColumnType("date")
-                        .HasColumnName("spent_on");
+                        .HasColumnName("spent_on")
+                        .HasComment("Harcamanın yapıldığı gün (Europe/Istanbul takvimine göre).");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Harcamayı giren kullanıcı (AspNetUsers.id). Sadece bu kullanıcı silebilir.");
 
                     b.HasKey("Id")
                         .HasName("pk_expenses");
@@ -122,34 +142,42 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_expenses_user_id_idempotency_key");
 
-                    b.ToTable("expenses", (string)null);
+                    b.ToTable("expenses", null, t =>
+                        {
+                            t.HasComment("Harcamalar. Her satır bir harcama; bir deftere (kişisel ya da hane) aittir.");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Households.Household", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir. Aynı zamanda hane defterinin kimliği.");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
 
                     b.Property<string>("InviteCode")
                         .IsRequired()
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)")
-                        .HasColumnName("invite_code");
+                        .HasColumnName("invite_code")
+                        .HasComment("8 karakterlik davet kodu (karışan 0/O, 1/I/L harfleri yok). Kurucu yenileyebilir.");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
-                        .HasColumnName("name");
+                        .HasColumnName("name")
+                        .HasComment("Hanenin adı, örn. \"Doğan ailesi\" (en fazla 60 karakter).");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
 
                     b.HasKey("Id")
                         .HasName("pk_households");
@@ -158,28 +186,35 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_households_invite_code");
 
-                    b.ToTable("households", (string)null);
+                    b.ToTable("households", null, t =>
+                        {
+                            t.HasComment("Ortak haneler (evli çiftler, aileler). Hanenin kimliği, hane defterinin kimliğidir (ledger_id).");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Households.HouseholdMember", b =>
                 {
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid")
-                        .HasColumnName("household_id");
+                        .HasColumnName("household_id")
+                        .HasComment("Üye olunan hane (households.id).");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Üye kullanıcı (AspNetUsers.id).");
 
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("joined_at");
+                        .HasColumnName("joined_at")
+                        .HasComment("Haneye katılma anı. Kurucu ayrılırsa kuruculuk en eski üyeye geçer.");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
-                        .HasColumnName("role");
+                        .HasColumnName("role")
+                        .HasComment("Owner (kurucu: üye çıkarır, kodu yeniler) ya da Member.");
 
                     b.HasKey("HouseholdId", "UserId")
                         .HasName("pk_household_member");
@@ -188,46 +223,57 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_household_member_user_id");
 
-                    b.ToTable("household_member", (string)null);
+                    b.ToTable("household_member", null, t =>
+                        {
+                            t.HasComment("Hane üyelikleri. Bir kullanıcı aynı anda tek hanede olabilir (unique: user_id); hanede en fazla 10 üye.");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Notifications.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
 
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("kind");
+                        .HasColumnName("kind")
+                        .HasComment("TaskAssigned, TaskDueSoon, TaskOverdue ya da TaskCompleted.");
 
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("message");
+                        .HasColumnName("message")
+                        .HasComment("Olay anında yazılan Türkçe metin, örn. \"Yaren sana bir görev verdi: ...\".");
 
                     b.Property<DateTimeOffset?>("ReadAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("read_at");
+                        .HasColumnName("read_at")
+                        .HasComment("Okunma anı; boşsa okunmamış (zilde sayılır).");
 
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uuid")
-                        .HasColumnName("task_id");
+                        .HasColumnName("task_id")
+                        .HasComment("İlgili görev (tasks.id). Görev silinse de bildirim kalır.");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Bildirimi alacak kullanıcı. Herkes sadece kendi bildirimlerini görür.");
 
                     b.HasKey("Id")
                         .HasName("pk_notifications");
@@ -239,81 +285,100 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_notifications_user_id_task_id_kind");
 
-                    b.ToTable("notifications", (string)null);
+                    b.ToTable("notifications", null, t =>
+                        {
+                            t.HasComment("Uygulama içi bildirimler (zil ikonu). Kullanıcı ve görev başına her türden en fazla bir tane (unique: user_id, task_id, kind).");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Tasks.HouseholdTask", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<int>("AnchorDay")
                         .HasColumnType("integer")
-                        .HasColumnName("anchor_day");
+                        .HasColumnName("anchor_day")
+                        .HasComment("Serinin ayın kaçında olduğu. 31'i kısa ayda ayın son gününe çekilir, sonra geri döner.");
 
                     b.Property<Guid>("AssigneeId")
                         .HasColumnType("uuid")
-                        .HasColumnName("assignee_id");
+                        .HasColumnName("assignee_id")
+                        .HasComment("Görevi yapacak kullanıcı. Üye haneden ayrılırsa kurucuya geçer.");
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("category");
+                        .HasColumnName("category")
+                        .HasComment("Görev ödenince eklenecek harcamanın kategorisi (varsayılan Bills).");
 
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
+                        .HasColumnName("completed_at")
+                        .HasComment("Tamamlanma anı; boşsa görev açık.");
 
                     b.Property<Guid?>("CompletedById")
                         .HasColumnType("uuid")
-                        .HasColumnName("completed_by_id");
+                        .HasColumnName("completed_by_id")
+                        .HasComment("Görevi tamamlayan kullanıcı.");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasComment("Kaydın oluşturulma anı (UTC, sunucu saatiyle).");
 
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid")
-                        .HasColumnName("created_by_id");
+                        .HasColumnName("created_by_id")
+                        .HasComment("Görevi veren kullanıcı. Görevi silebilir ve tamamlayabilir.");
 
                     b.Property<DateOnly>("DueOn")
                         .HasColumnType("date")
-                        .HasColumnName("due_on");
+                        .HasColumnName("due_on")
+                        .HasComment("Son gün. Hatırlatma 3 gün kala ve geçince bir kez gider.");
 
                     b.Property<Guid?>("ExpenseId")
                         .HasColumnType("uuid")
-                        .HasColumnName("expense_id");
+                        .HasColumnName("expense_id")
+                        .HasComment("Ödendi derken tutar girildiyse oluşturulan harcama (expenses.id).");
 
                     b.Property<Guid>("LedgerId")
                         .HasColumnType("uuid")
-                        .HasColumnName("ledger_id");
+                        .HasColumnName("ledger_id")
+                        .HasComment("Kaydın ait olduğu defter: kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Tüm sorgular bu kolona göre filtrelenir.");
 
                     b.Property<decimal?>("PaidAmount")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
-                        .HasColumnName("paid_amount");
+                        .HasColumnName("paid_amount")
+                        .HasComment("Ödenen tutar, TRY; tutarsız tamamlandıysa boş.");
 
                     b.Property<string>("Recurrence")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
-                        .HasColumnName("recurrence");
+                        .HasColumnName("recurrence")
+                        .HasComment("None (tek seferlik) ya da Monthly (tamamlanınca gelecek ay açılır).");
 
                     b.Property<Guid>("SeriesId")
                         .HasColumnType("uuid")
-                        .HasColumnName("series_id");
+                        .HasColumnName("series_id")
+                        .HasComment("Aylık görevin tüm aylarını bağlar. (series_id, due_on) unique: aynı ay iki kez açılmaz.");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)")
-                        .HasColumnName("title");
+                        .HasColumnName("title")
+                        .HasComment("Görevin adı (en fazla 80 karakter). Ödenince harcamanın notu olur.");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
+                        .HasColumnName("updated_at")
+                        .HasComment("Son değişiklik anı (UTC); hiç değişmediyse boş.");
 
                     b.HasKey("Id")
                         .HasName("pk_tasks");
@@ -329,29 +394,36 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("LedgerId", "CompletedAt", "DueOn")
                         .HasDatabaseName("ix_tasks_ledger_id_completed_at_due_on");
 
-                    b.ToTable("tasks", (string)null);
+                    b.ToTable("tasks", null, t =>
+                        {
+                            t.HasComment("Görevler (örn. \"Elektrik faturası → Yaren\"). Harcamalar gibi bir deftere aittir; aylık tekrarlayabilir.");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Infrastructure.Ai.ExpenseEmbedding", b =>
                 {
                     b.Property<Guid>("ExpenseId")
                         .HasColumnType("uuid")
-                        .HasColumnName("expense_id");
+                        .HasColumnName("expense_id")
+                        .HasComment("Vektörün ait olduğu harcama (expenses.id); silinince vektör de silinir.");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
                         .HasColumnType("vector(1024)")
-                        .HasColumnName("embedding");
+                        .HasColumnName("embedding")
+                        .HasComment("\"<Kategori>: <not>\" metninin 1024 boyutlu vektörü. HNSW index, cosine mesafesi.");
 
                     b.Property<DateTimeOffset>("IndexedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("indexed_at");
+                        .HasColumnName("indexed_at")
+                        .HasComment("Vektörün üretildiği an.");
 
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("model");
+                        .HasColumnName("model")
+                        .HasComment("Vektörü üreten model. Model değişince vektör yeniden üretilir.");
 
                     b.HasKey("ExpenseId")
                         .HasName("pk_expense_embeddings");
@@ -362,7 +434,10 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Embedding"), "hnsw");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Embedding"), new[] { "vector_cosine_ops" });
 
-                    b.ToTable("expense_embeddings", (string)null);
+                    b.ToTable("expense_embeddings", null, t =>
+                        {
+                            t.HasComment("Anlamsal arama (RAG) için harcama vektörleri. Arka plan işi doldurur; harcama kaydı modele bağlı değildir.");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Infrastructure.Identity.AppUser", b =>
@@ -370,73 +445,89 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer")
-                        .HasColumnName("access_failed_count");
+                        .HasColumnName("access_failed_count")
+                        .HasComment("Art arda hatalı giriş sayısı; başarılı girişte sıfırlanır.");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
-                        .HasColumnName("concurrency_stamp");
+                        .HasColumnName("concurrency_stamp")
+                        .HasComment("Eşzamanlı güncellemeleri yakalamak için sürüm damgası.");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("display_name");
+                        .HasColumnName("display_name")
+                        .HasComment("Hane üyelerinin gördüğü ad (en fazla 40 karakter).");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("email");
+                        .HasColumnName("email")
+                        .HasComment("E-posta adresi; girişte kullanılır.");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean")
-                        .HasColumnName("email_confirmed");
+                        .HasColumnName("email_confirmed")
+                        .HasComment("E-posta doğrulandı mı (henüz kullanılmıyor).");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
-                        .HasColumnName("lockout_enabled");
+                        .HasColumnName("lockout_enabled")
+                        .HasComment("Bu hesap için kilitleme açık mı.");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("lockout_end");
+                        .HasColumnName("lockout_end")
+                        .HasComment("Hesap kilidinin biteceği an. 5 hatalı şifrede 5 dakika kilitlenir.");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("normalized_email");
+                        .HasColumnName("normalized_email")
+                        .HasComment("Büyük harfe çevrilmiş e-posta; harf duyarsız arama için.");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("normalized_user_name");
+                        .HasColumnName("normalized_user_name")
+                        .HasComment("Büyük harfe çevrilmiş kullanıcı adı; harf duyarsız arama için (unique).");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text")
-                        .HasColumnName("password_hash");
+                        .HasColumnName("password_hash")
+                        .HasComment("Şifrenin PBKDF2 hash'i. Şifrenin kendisi hiçbir yerde saklanmaz.");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text")
-                        .HasColumnName("phone_number");
+                        .HasColumnName("phone_number")
+                        .HasComment("Telefon (kullanılmıyor).");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean")
-                        .HasColumnName("phone_number_confirmed");
+                        .HasColumnName("phone_number_confirmed")
+                        .HasComment("Telefon doğrulandı mı (kullanılmıyor).");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
-                        .HasColumnName("security_stamp");
+                        .HasColumnName("security_stamp")
+                        .HasComment("Şifre ya da güvenlik bilgisi değişince yenilenir; eski oturumları geçersiz kılar.");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")
-                        .HasColumnName("two_factor_enabled");
+                        .HasColumnName("two_factor_enabled")
+                        .HasComment("İki adımlı doğrulama açık mı (kullanılmıyor).");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("user_name");
+                        .HasColumnName("user_name")
+                        .HasComment("Kullanıcı adı; uygulamada e-posta ile aynıdır.");
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_users");
@@ -448,7 +539,10 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", null, t =>
+                        {
+                            t.HasComment("Kullanıcı hesapları (ASP.NET Core Identity). Şifre düz metin değil, PBKDF2 hash olarak saklanır.");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -456,22 +550,26 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar. UUID v7: zamana göre sıralı, index'e hep sona eklenir.");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
-                        .HasColumnName("concurrency_stamp");
+                        .HasColumnName("concurrency_stamp")
+                        .HasComment("Eşzamanlı güncellemeleri yakalamak için sürüm damgası.");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("name");
+                        .HasColumnName("name")
+                        .HasComment("Rol adı.");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("normalized_name");
+                        .HasColumnName("normalized_name")
+                        .HasComment("Büyük harfe çevrilmiş rol adı (unique).");
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_roles");
@@ -480,7 +578,10 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", null, t =>
+                        {
+                            t.HasComment("Roller (Identity; uygulama henüz rol kullanmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -488,21 +589,25 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar.");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text")
-                        .HasColumnName("claim_type");
+                        .HasColumnName("claim_type")
+                        .HasComment("Claim türü.");
 
                     b.Property<string>("ClaimValue")
                         .HasColumnType("text")
-                        .HasColumnName("claim_value");
+                        .HasColumnName("claim_value")
+                        .HasComment("Claim değeri.");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid")
-                        .HasColumnName("role_id");
+                        .HasColumnName("role_id")
+                        .HasComment("Rol (AspNetRoles.id).");
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_role_claims");
@@ -510,7 +615,10 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("RoleId")
                         .HasDatabaseName("ix_asp_net_role_claims_role_id");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", null, t =>
+                        {
+                            t.HasComment("Role ait claim'ler (Identity; kullanılmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -518,21 +626,25 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasComment("Birincil anahtar.");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text")
-                        .HasColumnName("claim_type");
+                        .HasColumnName("claim_type")
+                        .HasComment("Claim türü.");
 
                     b.Property<string>("ClaimValue")
                         .HasColumnType("text")
-                        .HasColumnName("claim_value");
+                        .HasColumnName("claim_value")
+                        .HasComment("Claim değeri.");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Kullanıcı (AspNetUsers.id).");
 
                     b.HasKey("Id")
                         .HasName("pk_asp_net_user_claims");
@@ -540,26 +652,33 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_asp_net_user_claims_user_id");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", null, t =>
+                        {
+                            t.HasComment("Kullanıcıya ait ek bilgiler/claim'ler (Identity; kullanılmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text")
-                        .HasColumnName("login_provider");
+                        .HasColumnName("login_provider")
+                        .HasComment("Sağlayıcı adı.");
 
                     b.Property<string>("ProviderKey")
                         .HasColumnType("text")
-                        .HasColumnName("provider_key");
+                        .HasColumnName("provider_key")
+                        .HasComment("Sağlayıcıdaki kullanıcı kimliği.");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("text")
-                        .HasColumnName("provider_display_name");
+                        .HasColumnName("provider_display_name")
+                        .HasComment("Sağlayıcının görünen adı.");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Kullanıcı (AspNetUsers.id).");
 
                     b.HasKey("LoginProvider", "ProviderKey")
                         .HasName("pk_asp_net_user_logins");
@@ -567,18 +686,23 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_asp_net_user_logins_user_id");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", null, t =>
+                        {
+                            t.HasComment("Dış sağlayıcı girişleri, örn. Google (Identity; kullanılmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Kullanıcı (AspNetUsers.id).");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid")
-                        .HasColumnName("role_id");
+                        .HasColumnName("role_id")
+                        .HasComment("Rol (AspNetRoles.id).");
 
                     b.HasKey("UserId", "RoleId")
                         .HasName("pk_asp_net_user_roles");
@@ -586,31 +710,41 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                     b.HasIndex("RoleId")
                         .HasDatabaseName("ix_asp_net_user_roles_role_id");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", null, t =>
+                        {
+                            t.HasComment("Kullanıcı-rol eşleşmeleri (Identity; kullanılmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("user_id")
+                        .HasComment("Kullanıcı (AspNetUsers.id).");
 
                     b.Property<string>("LoginProvider")
                         .HasColumnType("text")
-                        .HasColumnName("login_provider");
+                        .HasColumnName("login_provider")
+                        .HasComment("Token'ı üreten sağlayıcı.");
 
                     b.Property<string>("Name")
                         .HasColumnType("text")
-                        .HasColumnName("name");
+                        .HasColumnName("name")
+                        .HasComment("Token adı.");
 
                     b.Property<string>("Value")
                         .HasColumnType("text")
-                        .HasColumnName("value");
+                        .HasColumnName("value")
+                        .HasComment("Token değeri.");
 
                     b.HasKey("UserId", "LoginProvider", "Name")
                         .HasName("pk_asp_net_user_tokens");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", null, t =>
+                        {
+                            t.HasComment("Kullanıcı token'ları, örn. şifre sıfırlama (Identity; kullanılmıyor).");
+                        });
                 });
 
             modelBuilder.Entity("ExpenseTracker.Domain.Households.HouseholdMember", b =>

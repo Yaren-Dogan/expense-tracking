@@ -47,6 +47,8 @@ public sealed class AppDbContext(
         modelBuilder.Entity<Budget>().HasQueryFilter(b => b.LedgerId == CurrentLedgerId);
         modelBuilder.Entity<HouseholdTask>().HasQueryFilter(t => t.LedgerId == CurrentLedgerId);
         modelBuilder.Entity<Notification>().HasQueryFilter(n => n.UserId == CurrentUserId);
+
+        SchemaComments.Apply(modelBuilder);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
