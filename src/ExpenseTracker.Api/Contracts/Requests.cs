@@ -12,3 +12,15 @@ public sealed record SetBudgetRequest(decimal Amount);
 public sealed record ParseExpenseRequest(string Text, DateOnly? Today);
 
 public sealed record AssistantChatRequest(IReadOnlyList<ChatTurn> Messages, DateOnly? Today);
+
+public sealed record RegisterRequest(string Email, string Password, string DisplayName, Guid? DeviceUserId);
+
+public sealed record LoginRequest(string Email, string Password, Guid? DeviceUserId);
+
+public sealed record MeResponse(Guid Id, string Email, string DisplayName, HouseholdSummary? Household, int ClaimedExpenses = 0);
+
+public sealed record HouseholdSummary(Guid Id, string Name);
+
+public sealed record CreateHouseholdRequest(string Name);
+
+public sealed record JoinHouseholdRequest(string Code);

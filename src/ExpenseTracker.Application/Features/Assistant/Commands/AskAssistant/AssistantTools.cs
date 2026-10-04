@@ -12,8 +12,8 @@ using Microsoft.Extensions.AI;
 namespace ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
 
 /// <summary>
-/// The functions the model may call. Every tool reads the user from <see cref="IUserContext"/>, never from a
-/// model-supplied argument, so the model cannot reach another user's data however it is prompted.
+/// The functions the model may call. Every tool reads the ledger from <see cref="IUserContext"/>, never from a
+/// model-supplied argument, so the model cannot reach another user's or household's data however it is prompted.
 /// Tools are read-only and return compact, Turkish-labelled objects to keep the context small.
 /// Invalid arguments come back as an error text the model can read and correct, not as an exception.
 /// </summary>
@@ -22,6 +22,7 @@ public sealed class AssistantTools(
     IUserContext user,
     ISender mediator,
     ISemanticExpenseSearch search,
+    IUserDirectory users,
     DateOnly today)
 {
     private const int MaxRangeDays = 366;
@@ -81,9 +82,9 @@ public sealed class AssistantTools(
         if (ParseRange(from, to) is not (var start, var end))
             return RangeError;
 
-        var userId = user.UserId;
+        var ledgerId = user.LedgerId;
         var rows = await db.Expenses.AsNoTracking()
-            .Where(e => e.UserId == userId && e.SpentOn >= start && e.SpentOn <= end)
+            .Where(e => e.LedgerId == ledgerId && e.SpentOn >= start && e.SpentOn <= end)
             .GroupBy(e => e.Category)
             .Select(g => new { Category = g.Key, Total = g.Sum(e => e.Amount), Count = g.Count() })
             .ToListAsync(cancellationToken);
@@ -124,18 +125,21 @@ public sealed class AssistantTools(
             filter = parsed;
         }
 
-        var userId = user.UserId;
+        var ledgerId = user.LedgerId;
         var items = await db.Expenses.AsNoTracking()
-            .Where(e => e.UserId == userId && e.SpentOn >= start && e.SpentOn <= end)
+            .Where(e => e.LedgerId == ledgerId && e.SpentOn >= start && e.SpentOn <= end)
             .Where(e => filter == null || e.Category == filter)
             .OrderByDescending(e => e.SpentOn).ThenByDescending(e => e.CreatedAt)
             .Take(MaxListed)
-            .Select(e => new { e.SpentOn, e.Category, e.Note, e.Amount })
+            .Select(e => new { e.SpentOn, e.Category, e.Note, e.Amount, e.UserId })
             .ToListAsync(cancellationToken);
 
+        // In a household "who" matters ("Ayşe bu hafta ne harcadı?"); for a personal ledger it is always the user.
+        var names = await users.GetDisplayNamesAsync(items.Select(e => e.UserId).Distinct(), cancellationToken);
         return items.Select(e => new
         {
             tarih = e.SpentOn.ToString("yyyy-MM-dd"),
+            kim = names.GetValueOrDefault(e.UserId),
             kategori = CategoryNames.Turkish(e.Category),
             not = e.Note,
             tutar = e.Amount
@@ -152,7 +156,7 @@ public sealed class AssistantTools(
         IReadOnlyList<ExpenseMatch> matches;
         try
         {
-            matches = await search.SearchAsync(user.UserId, query, MaxSearchResults, cancellationToken);
+            matches = await search.SearchAsync(user.LedgerId, query, MaxSearchResults, cancellationToken);
         }
         catch (Exception ex) when (ex is HttpRequestException or AiUnavailableException)
         {

@@ -18,9 +18,9 @@ public sealed class SetBudgetCommandHandler(
     public async Task<BudgetDto> Handle(SetBudgetCommand request, CancellationToken cancellationToken)
     {
         BudgetMonth.TryParse(request.Month, out var month);
-        var userId = user.UserId;
+        var ledgerId = user.LedgerId;
 
-        var budget = await Find(userId, month, cancellationToken);
+        var budget = await Find(ledgerId, month, cancellationToken);
         if (budget is not null)
         {
             budget.ChangeAmount(request.Amount);
@@ -28,7 +28,7 @@ public sealed class SetBudgetCommandHandler(
         }
         else
         {
-            budget = Budget.Create(userId, month, request.Amount);
+            budget = Budget.Create(ledgerId, month, request.Amount);
             db.Budgets.Add(budget);
             try
             {
@@ -38,17 +38,17 @@ public sealed class SetBudgetCommandHandler(
             {
                 // Two first-time saves for the same month raced; update the row the other request inserted.
                 db.Entry(budget).State = EntityState.Detached;
-                budget = await Find(userId, month, cancellationToken)
+                budget = await Find(ledgerId, month, cancellationToken)
                     ?? throw new InvalidOperationException("Unique violation on budget month but no matching budget was found.");
                 budget.ChangeAmount(request.Amount);
                 await db.SaveChangesAsync(cancellationToken);
             }
         }
 
-        logger.BudgetSet(month.ToString(), budget.Amount, userId);
+        logger.BudgetSet(month.ToString(), budget.Amount, ledgerId);
         return BudgetDto.From(budget);
     }
 
-    private Task<Budget?> Find(Guid userId, BudgetMonth month, CancellationToken ct) =>
-        db.Budgets.SingleOrDefaultAsync(b => b.UserId == userId && b.Year == month.Year && b.Month == month.Month, ct);
+    private Task<Budget?> Find(Guid ledgerId, BudgetMonth month, CancellationToken ct) =>
+        db.Budgets.SingleOrDefaultAsync(b => b.LedgerId == ledgerId && b.Year == month.Year && b.Month == month.Month, ct);
 }

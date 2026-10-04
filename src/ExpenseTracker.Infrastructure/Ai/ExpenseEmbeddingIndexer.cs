@@ -70,7 +70,7 @@ public sealed partial class ExpenseEmbeddingIndexer(
             .Where(e => !db.ExpenseEmbeddings.IgnoreQueryFilters().Any(v => v.ExpenseId == e.Id && v.Model == model))
             .OrderBy(e => e.CreatedAt)
             .Take(options.Value.IndexBatchSize)
-            .Select(e => new { e.Id, e.UserId, e.Category, e.Note })
+            .Select(e => new { e.Id, e.Category, e.Note })
             .ToListAsync(ct);
 
         if (pending.Count == 0)
@@ -89,7 +89,7 @@ public sealed partial class ExpenseEmbeddingIndexer(
         {
             if (!existing.TryGetValue(expense.Id, out var row))
             {
-                row = new ExpenseEmbedding { ExpenseId = expense.Id, UserId = expense.UserId };
+                row = new ExpenseEmbedding { ExpenseId = expense.Id };
                 db.ExpenseEmbeddings.Add(row);
             }
 

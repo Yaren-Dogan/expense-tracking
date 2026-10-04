@@ -16,7 +16,6 @@ public sealed class ExpenseEmbeddingConfiguration : IEntityTypeConfiguration<Exp
         // Deleting an expense removes its vector, so search can never return a deleted expense.
         builder.HasOne<Expense>().WithOne().HasForeignKey<ExpenseEmbedding>(e => e.ExpenseId).OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(e => e.UserId);
         // HNSW keeps nearest-neighbour search fast as the table grows; cosine matches how similarity is scored.
         builder.HasIndex(e => e.Embedding).HasMethod("hnsw").HasOperators("vector_cosine_ops");
     }

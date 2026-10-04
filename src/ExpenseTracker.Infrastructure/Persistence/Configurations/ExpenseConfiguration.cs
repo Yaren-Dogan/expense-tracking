@@ -17,7 +17,7 @@ public sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
         builder.Property(e => e.Note).HasMaxLength(Expense.NoteMaxLength);
         builder.Property(e => e.IdempotencyKey).HasMaxLength(Expense.IdempotencyKeyMaxLength);
 
-        builder.HasIndex(e => new { e.UserId, e.SpentOn });
+        builder.HasIndex(e => new { e.LedgerId, e.SpentOn });
         builder.HasIndex(e => new { e.UserId, e.IdempotencyKey }).IsUnique();
     }
 }

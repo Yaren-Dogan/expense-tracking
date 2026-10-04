@@ -17,6 +17,7 @@ public sealed class AskAssistantCommandHandler(
     ISender mediator,
     ISemanticExpenseSearch search,
     IAppClock clock,
+    IUserDirectory users,
     IOptions<AssistantOptions> options,
     ILogger<AskAssistantCommandHandler> logger)
     : IRequestHandler<AskAssistantCommand, AssistantReply>
@@ -24,7 +25,7 @@ public sealed class AskAssistantCommandHandler(
     public async Task<AssistantReply> Handle(AskAssistantCommand request, CancellationToken cancellationToken)
     {
         var today = request.Today ?? clock.Today;
-        var tools = new AssistantTools(db, user, mediator, search, today);
+        var tools = new AssistantTools(db, user, mediator, search, users, today);
         var conversation = request.Messages
             .Select(m => new ChatMessage(m.Role == ChatRoles.User ? ChatRole.User : ChatRole.Assistant, m.Content))
             .ToList();

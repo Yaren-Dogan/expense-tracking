@@ -9,7 +9,11 @@ public sealed class Expense : Entity
     public const int NoteMaxLength = 200;
     public const int IdempotencyKeyMaxLength = 100;
 
+    /// <summary>Who entered the expense. Only this user may delete it.</summary>
     public Guid UserId { get; private set; }
+
+    /// <summary>The ledger the expense belongs to: the creator's personal ledger or their household's.</summary>
+    public Guid LedgerId { get; private set; }
     public decimal Amount { get; private set; }
     public ExpenseCategory Category { get; private set; }
     public string? Note { get; private set; }
@@ -20,6 +24,7 @@ public sealed class Expense : Entity
 
     public static Expense Create(
         Guid userId,
+        Guid ledgerId,
         decimal amount,
         ExpenseCategory category,
         string? note,
@@ -28,6 +33,8 @@ public sealed class Expense : Entity
     {
         if (userId == Guid.Empty)
             throw new DomainException("An expense must belong to a user.");
+        if (ledgerId == Guid.Empty)
+            throw new DomainException("An expense must belong to a ledger.");
         if (amount <= 0 || amount > MaxAmount)
             throw new DomainException($"Amount must be greater than 0 and at most {MaxAmount}.");
         if (decimal.Round(amount, 2) != amount)
@@ -44,11 +51,23 @@ public sealed class Expense : Entity
         return new Expense
         {
             UserId = userId,
+            LedgerId = ledgerId,
             Amount = amount,
             Category = category,
             Note = trimmedNote,
             SpentOn = spentOn,
             IdempotencyKey = string.IsNullOrWhiteSpace(idempotencyKey) ? null : idempotencyKey
         };
+    }
+
+    public bool WasCreatedBy(Guid userId) => UserId == userId;
+
+    /// <summary>Moves an expense recorded before accounts existed (under a device id) to its new owner.</summary>
+    public void ReassignTo(Guid userId, Guid ledgerId)
+    {
+        if (userId == Guid.Empty || ledgerId == Guid.Empty)
+            throw new DomainException("An expense must belong to a user and a ledger.");
+        UserId = userId;
+        LedgerId = ledgerId;
     }
 }

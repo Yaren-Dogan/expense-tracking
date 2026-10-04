@@ -46,7 +46,7 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Parse_returns_a_suggestion_without_saving_it()
     {
-        var client = _factory.ForNewUser();
+        var client = await _factory.ForNewUserAsync();
         _factory.Model.Reply("""{"amount":85,"category":"Food","daysAgo":1,"note":"Kahve"}""");
 
         var response = await client.PostAsJsonAsync("/api/expenses/parse", new { text = "dün kahveye 85", today = "2026-09-30" });
@@ -61,7 +61,7 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Parse_maps_model_failures_to_422_and_503()
     {
-        var client = _factory.ForNewUser();
+        var client = await _factory.ForNewUserAsync();
         _factory.Model.Reply("I don't know");
         _factory.Model.Fail(new HttpRequestException("connection refused"));
 
@@ -76,8 +76,8 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Semantic_search_ranks_related_expenses_and_never_crosses_users()
     {
-        var owner = _factory.ForNewUser();
-        var stranger = _factory.ForNewUser();
+        var owner = await _factory.ForNewUserAsync();
+        var stranger = await _factory.ForNewUserAsync();
         await owner.PostExpense(Expense(95, "Food", "Kahve Dünyası", "2026-09-10"));
         await owner.PostExpense(Expense(85, "Food", "Kahveci", "2026-09-11"));
         await owner.PostExpense(Expense(310, "Transport", "Taksi", "2026-09-12"));
@@ -94,7 +94,7 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Deleted_expenses_drop_out_of_the_index()
     {
-        var client = _factory.ForNewUser();
+        var client = await _factory.ForNewUserAsync();
         var expense = await (await client.PostExpense(Expense(120, "Entertainment", "Sinema bileti", "2026-09-05"))).Read<ExpenseDto>();
         await SearchUntilIndexed(client, "sinema", expected: 1);
 
@@ -107,11 +107,11 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Assistant_runs_the_chosen_tool_on_the_callers_data_and_reports_it()
     {
-        var client = _factory.ForNewUser();
+        var client = await _factory.ForNewUserAsync();
         await client.PostExpense(Expense(2000, "Market", "Migros", "2026-09-03"));
         await client.PostExpense(Expense(300, "Food", "Döner", "2026-09-04"));
         // Another user's big spending must not leak into this user's numbers.
-        await _factory.ForNewUser().PostExpense(Expense(99999, "Clothing", "Kürk", "2026-09-04"));
+        await (await _factory.ForNewUserAsync()).PostExpense(Expense(99999, "Clothing", "Kürk", "2026-09-04"));
 
         _factory.Model.Reply("""{"reason":"kategori toplamı lazım","action":"GetSpendingByCategory","from":"2026-09-01","to":"2026-09-30","category":null,"query":null}""");
         _factory.Model.Reply("""{"reason":"yeterli","action":"Answer","from":null,"to":null,"category":null,"query":null}""");
@@ -135,7 +135,7 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Assistant_rejects_tool_arguments_it_cannot_run_and_lets_the_model_recover()
     {
-        var client = _factory.ForNewUser();
+        var client = await _factory.ForNewUserAsync();
         _factory.Model.Reply("""{"reason":"x","action":"ListExpenses","from":"dün","to":"bugün","category":null,"query":null}""");
         _factory.Model.Reply("""{"reason":"x","action":"Answer","from":null,"to":null,"category":null,"query":null}""");
         _factory.Model.Reply("Tarihleri anlayamadım.");
@@ -152,7 +152,7 @@ public class AiApiTests : IDisposable
     [Fact]
     public async Task Assistant_validates_the_conversation()
     {
-        var response = await _factory.ForNewUser().PostAsJsonAsync("/api/assistant/chat", new
+        var response = await (await _factory.ForNewUserAsync()).PostAsJsonAsync("/api/assistant/chat", new
         {
             messages = new[] { new { role = "assistant", content = "Merhaba" } }
         });

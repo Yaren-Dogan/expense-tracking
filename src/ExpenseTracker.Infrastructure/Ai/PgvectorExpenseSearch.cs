@@ -16,21 +16,22 @@ public sealed class PgvectorExpenseSearch(
     IOptions<AiOptions> options) : ISemanticExpenseSearch
 {
     public async Task<IReadOnlyList<ExpenseMatch>> SearchAsync(
-        Guid userId, string query, int top, CancellationToken cancellationToken)
+        Guid ledgerId, string query, int top, CancellationToken cancellationToken)
     {
         var embedding = await generator.GenerateAsync(query, cancellationToken: cancellationToken);
         var queryVector = new Vector(embedding.Vector);
         var model = options.Value.EmbeddingModel;
         var maxDistance = 1 - options.Value.EffectiveMinSimilarity;
 
-        // The explicit UserId condition is the primary isolation; the global filter is the backstop.
+        // Filter to the ledger before ranking: taking the top k across everyone first would drop this ledger's matches.
+        // The explicit LedgerId condition is the primary isolation; the expenses' global filter is the backstop.
         var rows = await db.ExpenseEmbeddings
-            .Where(v => v.UserId == userId && v.Model == model)
-            .Select(v => new { v.ExpenseId, Distance = v.Embedding.CosineDistance(queryVector) })
+            .Where(v => v.Model == model)
+            .Join(db.Expenses.Where(e => e.LedgerId == ledgerId), v => v.ExpenseId, e => e.Id,
+                (v, e) => new { Expense = e, Distance = v.Embedding.CosineDistance(queryVector) })
             .Where(x => x.Distance <= maxDistance)
             .OrderBy(x => x.Distance)
             .Take(top)
-            .Join(db.Expenses, x => x.ExpenseId, e => e.Id, (x, e) => new { x.Distance, Expense = e })
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 

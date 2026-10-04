@@ -14,7 +14,7 @@ public class EntityRuleTests
     [Fact]
     public void Expense_trims_the_note_and_drops_blank_values()
     {
-        var expense = Expense.Create(User, 12.5m, ExpenseCategory.Food, "  simit  ", Day, " ");
+        var expense = Expense.Create(User, User, 12.5m, ExpenseCategory.Food, "  simit  ", Day, " ");
 
         expense.Note.Should().Be("simit");
         expense.IdempotencyKey.Should().BeNull();
@@ -27,7 +27,7 @@ public class EntityRuleTests
     [InlineData("1.005")]
     public void Expense_rejects_invalid_amounts(string amount)
     {
-        var act = () => Expense.Create(User, decimal.Parse(amount, System.Globalization.CultureInfo.InvariantCulture),
+        var act = () => Expense.Create(User, User, decimal.Parse(amount, System.Globalization.CultureInfo.InvariantCulture),
             ExpenseCategory.Food, null, Day, null);
         act.Should().Throw<DomainException>();
     }
@@ -35,7 +35,7 @@ public class EntityRuleTests
     [Fact]
     public void Expense_requires_a_user()
     {
-        var act = () => Expense.Create(Guid.Empty, 10m, ExpenseCategory.Food, null, Day, null);
+        var act = () => Expense.Create(Guid.Empty, User, 10m, ExpenseCategory.Food, null, Day, null);
         act.Should().Throw<DomainException>();
     }
 

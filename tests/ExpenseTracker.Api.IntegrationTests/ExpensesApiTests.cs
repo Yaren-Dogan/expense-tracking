@@ -13,14 +13,12 @@ public class ExpensesApiTests(ApiFactory factory)
         new { amount = 85.50m, category = "Food", note = "kahve", spentOn };
 
     [Fact]
-    public async Task Requests_without_a_valid_user_header_are_rejected()
+    public async Task Requests_without_a_session_are_rejected()
     {
         var anonymous = factory.CreateClient();
 
-        (await anonymous.GetAsync("/api/expenses")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-        anonymous.DefaultRequestHeaders.Add("X-User-Id", "not-a-guid");
-        (await anonymous.GetAsync("/api/expenses")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await anonymous.GetAsync("/api/expenses")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await anonymous.PostExpense(Coffee())).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -32,7 +30,7 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Created_expense_is_listed_under_its_month()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
 
         var created = await client.PostExpense(Coffee());
         created.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -48,8 +46,8 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Users_cannot_see_or_delete_each_others_expenses()
     {
-        var owner = factory.ForNewUser();
-        var stranger = factory.ForNewUser();
+        var owner = await factory.ForNewUserAsync();
+        var stranger = await factory.ForNewUserAsync();
         var expense = await (await owner.PostExpense(Coffee())).Read<ExpenseDto>();
 
         (await stranger.GetFromJsonAsync<List<ExpenseDto>>("/api/expenses?month=2026-09", TestClient.Json))
@@ -63,7 +61,7 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Same_idempotency_key_returns_the_first_expense()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
         var key = Guid.NewGuid().ToString();
 
         var first = await client.PostExpense(Coffee(), key);
@@ -77,7 +75,7 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Concurrent_requests_with_one_idempotency_key_create_a_single_expense()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
         var key = Guid.NewGuid().ToString();
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => client.PostExpense(Coffee(), key)));
@@ -95,8 +93,8 @@ public class ExpensesApiTests(ApiFactory factory)
     {
         var key = Guid.NewGuid().ToString();
 
-        var a = await factory.ForNewUser().PostExpense(Coffee(), key);
-        var b = await factory.ForNewUser().PostExpense(Coffee(), key);
+        var a = await (await factory.ForNewUserAsync()).PostExpense(Coffee(), key);
+        var b = await (await factory.ForNewUserAsync()).PostExpense(Coffee(), key);
 
         a.StatusCode.Should().Be(HttpStatusCode.Created);
         b.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -105,7 +103,7 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Invalid_input_returns_field_level_problem_details()
     {
-        var response = await factory.ForNewUser().PostExpense(new
+        var response = await (await factory.ForNewUserAsync()).PostExpense(new
         {
             amount = 0,
             category = "Food",
@@ -121,7 +119,7 @@ public class ExpensesApiTests(ApiFactory factory)
     [Fact]
     public async Task Unknown_category_is_rejected_by_model_binding()
     {
-        var response = await factory.ForNewUser().PostExpense(new { amount = 10, category = "Yacht", spentOn = "2026-09-01" });
+        var response = await (await factory.ForNewUserAsync()).PostExpense(new { amount = 10, category = "Yacht", spentOn = "2026-09-01" });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

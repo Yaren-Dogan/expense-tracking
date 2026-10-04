@@ -11,11 +11,11 @@ public sealed class GetBudgetQueryHandler(IAppDbContext db, IUserContext user)
     public async Task<BudgetDto?> Handle(GetBudgetQuery request, CancellationToken cancellationToken)
     {
         BudgetMonth.TryParse(request.Month, out var month);
-        var userId = user.UserId;
+        var ledgerId = user.LedgerId;
 
         var budget = await db.Budgets
             .AsNoTracking()
-            .SingleOrDefaultAsync(b => b.UserId == userId && b.Year == month.Year && b.Month == month.Month, cancellationToken);
+            .SingleOrDefaultAsync(b => b.LedgerId == ledgerId && b.Year == month.Year && b.Month == month.Month, cancellationToken);
 
         return budget is null ? null : BudgetDto.From(budget);
     }

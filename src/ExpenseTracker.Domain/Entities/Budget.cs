@@ -8,7 +8,8 @@ public sealed class Budget : Entity
 {
     public const decimal MaxAmount = 10_000_000m;
 
-    public Guid UserId { get; private set; }
+    /// <summary>The personal or household ledger this budget applies to.</summary>
+    public Guid LedgerId { get; private set; }
     public int Year { get; private set; }
     public int Month { get; private set; }
     public decimal Amount { get; private set; }
@@ -17,14 +18,21 @@ public sealed class Budget : Entity
 
     private Budget() { }
 
-    public static Budget Create(Guid userId, BudgetMonth period, decimal amount)
+    public static Budget Create(Guid ledgerId, BudgetMonth period, decimal amount)
     {
-        if (userId == Guid.Empty)
-            throw new DomainException("A budget must belong to a user.");
+        if (ledgerId == Guid.Empty)
+            throw new DomainException("A budget must belong to a ledger.");
 
-        var budget = new Budget { UserId = userId, Year = period.Year, Month = period.Month };
+        var budget = new Budget { LedgerId = ledgerId, Year = period.Year, Month = period.Month };
         budget.ChangeAmount(amount);
         return budget;
+    }
+
+    public void MoveToLedger(Guid ledgerId)
+    {
+        if (ledgerId == Guid.Empty)
+            throw new DomainException("A budget must belong to a ledger.");
+        LedgerId = ledgerId;
     }
 
     public void ChangeAmount(decimal amount)

@@ -9,7 +9,6 @@ namespace ExpenseTracker.Infrastructure.Ai;
 public sealed class ExpenseEmbedding
 {
     public Guid ExpenseId { get; set; }
-    public Guid UserId { get; set; }
     public Vector Embedding { get; set; } = null!;
 
     /// <summary>Which model produced the vector; rows from another model are re-embedded.</summary>

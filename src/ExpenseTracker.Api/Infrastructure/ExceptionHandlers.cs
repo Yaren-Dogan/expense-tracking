@@ -1,3 +1,4 @@
+using ExpenseTracker.Application.Common.Exceptions;
 using ExpenseTracker.Domain.Common;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
@@ -44,4 +45,29 @@ public sealed class ValidationExceptionHandler(IProblemDetailsService problemDet
 
     private static string ToCamelCase(string name) =>
         string.IsNullOrEmpty(name) ? name : char.ToLowerInvariant(name[0]) + name[1..];
+}
+
+/// <summary>Application exceptions that describe an expected outcome, each with its HTTP status.</summary>
+public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDetails) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken ct)
+    {
+        var (status, title) = exception switch
+        {
+            NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+            ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
+            _ => (0, "")
+        };
+        if (status == 0)
+            return false;
+
+        context.Response.StatusCode = status;
+        return await problemDetails.TryWriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = context,
+            Exception = exception,
+            ProblemDetails = new ProblemDetails { Status = status, Title = title, Detail = exception.Message }
+        });
+    }
 }

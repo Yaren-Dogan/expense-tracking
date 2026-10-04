@@ -20,12 +20,12 @@ internal static partial class ApplicationLog
     public static partial void ExpenseDeleted(this ILogger logger, Guid expenseId, Guid userId);
 
     [LoggerMessage(EventId = 1004, EventName = "BudgetSet", Level = LogLevel.Information,
-        Message = "Budget for {Month} set to {Amount} for user {UserId}")]
-    public static partial void BudgetSet(this ILogger logger, string month, decimal amount, Guid userId);
+        Message = "Budget for {Month} set to {Amount} in ledger {LedgerId}")]
+    public static partial void BudgetSet(this ILogger logger, string month, decimal amount, Guid ledgerId);
 
     [LoggerMessage(EventId = 1005, EventName = "WeatherCalculated", Level = LogLevel.Debug,
-        Message = "Weather for user {UserId} on {Date}: {Condition}")]
-    public static partial void WeatherCalculated(this ILogger logger, Guid userId, DateOnly date, WeatherCondition? condition);
+        Message = "Weather for ledger {LedgerId} on {Date}: {Condition}")]
+    public static partial void WeatherCalculated(this ILogger logger, Guid ledgerId, DateOnly date, WeatherCondition? condition);
 
     [LoggerMessage(EventId = 1101, EventName = "ExpenseParsed", Level = LogLevel.Information,
         Message = "Parsed expense as {Category} in {ElapsedMs} ms")]

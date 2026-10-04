@@ -20,5 +20,6 @@ internal sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<A
     private sealed class NoUser : IUserContext
     {
         public Guid UserId => Guid.Empty;
+        public Guid LedgerId => Guid.Empty;
     }
 }

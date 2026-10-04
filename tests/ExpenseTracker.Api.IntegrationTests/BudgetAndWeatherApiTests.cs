@@ -13,7 +13,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Budget_is_created_then_replaced()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
 
         (await client.GetAsync("/api/budgets/2026-09")).StatusCode.Should().Be(HttpStatusCode.NotFound);
 
@@ -27,7 +27,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Concurrent_first_budget_saves_end_with_one_row()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 6)
             .Select(i => client.PutAsJsonAsync("/api/budgets/2026-10", new { amount = 1000 + i })));
@@ -39,7 +39,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Malformed_month_is_a_validation_error()
     {
-        var response = await factory.ForNewUser().PutAsJsonAsync("/api/budgets/september", new { amount = 3000 });
+        var response = await (await factory.ForNewUserAsync()).PutAsJsonAsync("/api/budgets/september", new { amount = 3000 });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -47,7 +47,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Weather_without_a_budget_has_no_conditions_but_still_totals_spending()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
         await client.PostExpense(new { amount = 40, category = "Market", spentOn = "2026-09-05" });
 
         var weather = await client.GetFromJsonAsync<WeatherDto>("/api/weather?date=2026-09-05", TestClient.Json);
@@ -62,7 +62,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Weather_follows_the_prd_rules()
     {
-        var client = factory.ForNewUser();
+        var client = await factory.ForNewUserAsync();
         await client.PutAsJsonAsync("/api/budgets/2026-09", new { amount = 3000 });
         // 1st: 50 of a 100 allowance = sunny. 2nd: 2950 left over 29 days (101.72), 200 spent = stormy.
         await client.PostExpense(new { amount = 50, category = "Food", spentOn = "2026-09-01" });
@@ -90,7 +90,7 @@ public class BudgetAndWeatherApiTests(ApiFactory factory)
     [Fact]
     public async Task Weather_rejects_dates_far_in_the_future()
     {
-        var response = await factory.ForNewUser().GetAsync("/api/weather?date=2999-01-01");
+        var response = await (await factory.ForNewUserAsync()).GetAsync("/api/weather?date=2999-01-01");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

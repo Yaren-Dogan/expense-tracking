@@ -13,6 +13,6 @@ public sealed class BudgetConfiguration : IEntityTypeConfiguration<Budget>
         builder.Property(b => b.Amount).HasPrecision(12, 2);
         builder.Ignore(b => b.Period);
 
-        builder.HasIndex(b => new { b.UserId, b.Year, b.Month }).IsUnique();
+        builder.HasIndex(b => new { b.LedgerId, b.Year, b.Month }).IsUnique();
     }
 }

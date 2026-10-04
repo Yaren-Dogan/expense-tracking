@@ -1,6 +1,7 @@
 using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
 using ExpenseTracker.Infrastructure.Ai;
+using ExpenseTracker.Infrastructure.Identity;
 using ExpenseTracker.Infrastructure.Persistence;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,7 @@ public static class DependencyInjection
             .Validate(o => TimeZoneInfo.TryFindSystemTimeZoneById(o.TimeZone, out _), "Clock:TimeZone is not a known time zone.")
             .ValidateOnStart();
         services.AddSingleton<IAppClock, AppClock>();
+        services.AddScoped<IUserDirectory, UserDirectory>();
 
         services.AddAi(configuration);
 

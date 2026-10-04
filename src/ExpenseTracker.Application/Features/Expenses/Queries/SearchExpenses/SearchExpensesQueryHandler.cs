@@ -7,5 +7,5 @@ public sealed class SearchExpensesQueryHandler(ISemanticExpenseSearch search, IU
     : IRequestHandler<SearchExpensesQuery, IReadOnlyList<ExpenseMatch>>
 {
     public Task<IReadOnlyList<ExpenseMatch>> Handle(SearchExpensesQuery request, CancellationToken cancellationToken) =>
-        search.SearchAsync(user.UserId, request.Query, request.Top, cancellationToken);
+        search.SearchAsync(user.LedgerId, request.Query, request.Top, cancellationToken);
 }

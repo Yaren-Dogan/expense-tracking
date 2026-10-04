@@ -27,6 +27,16 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public async Task InitializeAsync() => await _postgres.StartAsync();
 
+    /// <summary>Writes an expense the way the app did before accounts existed: owned by a device id, in its own ledger.</summary>
+    public async Task SeedDeviceExpenseAsync(Guid deviceId, decimal amount, string spentOn)
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ExpenseTracker.Infrastructure.Persistence.AppDbContext>();
+        db.Expenses.Add(ExpenseTracker.Domain.Entities.Expense.Create(
+            deviceId, deviceId, amount, ExpenseTracker.Domain.Enums.ExpenseCategory.Food, "cihazdan", DateOnly.Parse(spentOn), null));
+        await db.SaveChangesAsync(default);
+    }
+
     public new async Task DisposeAsync()
     {
         await base.DisposeAsync();
@@ -39,6 +49,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("ConnectionStrings:Postgres", _postgres.GetConnectionString());
         builder.UseSetting("Database:MigrateOnStartup", "true");
         builder.UseSetting("Ai:EmbeddingModel", "fake-embeddings");
+        // Every test registers users from the same in-memory "IP"; production limits would throttle the suite.
+        builder.UseSetting("RateLimits:PerMinute", "100000");
         // The fake's bag-of-words vectors score lower than a real model; the threshold is tuned for it.
         builder.UseSetting("Ai:MinSimilarity", "0.3");
 

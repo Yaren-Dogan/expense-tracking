@@ -19,7 +19,7 @@ public sealed class GetWeatherQueryHandler(
 
     public async Task<WeatherDto> Handle(GetWeatherQuery request, CancellationToken cancellationToken)
     {
-        var userId = user.UserId;
+        var ledgerId = user.LedgerId;
         var today = request.Date ?? clock.Today;
         var month = BudgetMonth.From(today);
         var stripStart = today.AddDays(-(StripDays - 1));
@@ -29,12 +29,12 @@ public sealed class GetWeatherQueryHandler(
         var from = BudgetMonth.From(stripStart).FirstDay;
         var dailyTotals = await db.Expenses
             .AsNoTracking()
-            .Where(e => e.UserId == userId && e.SpentOn >= from && e.SpentOn <= today)
+            .Where(e => e.LedgerId == ledgerId && e.SpentOn >= from && e.SpentOn <= today)
             .GroupBy(e => e.SpentOn)
             .Select(g => new { Day = g.Key, Total = g.Sum(e => e.Amount) })
             .ToDictionaryAsync(x => x.Day, x => x.Total, cancellationToken);
 
-        var budgets = await LoadBudgets(userId, BudgetMonth.From(stripStart), month, cancellationToken);
+        var budgets = await LoadBudgets(ledgerId, BudgetMonth.From(stripStart), month, cancellationToken);
 
         decimal SpentOn(DateOnly day) => dailyTotals.GetValueOrDefault(day);
         decimal SpentBetween(DateOnly start, DateOnly endExclusive) =>
@@ -58,7 +58,7 @@ public sealed class GetWeatherQueryHandler(
         decimal? monthlyBudget = budgets.TryGetValue(month, out var b) ? b : null;
         var forecast = monthlyBudget is { } mb ? BudgetWeather.ForecastMonth(mb, spentThisMonth, today) : null;
 
-        logger.WeatherCalculated(userId, today, todayWeather?.Condition);
+        logger.WeatherCalculated(ledgerId, today, todayWeather?.Condition);
 
         return new WeatherDto(
             today,
@@ -75,11 +75,11 @@ public sealed class GetWeatherQueryHandler(
     }
 
     private async Task<Dictionary<BudgetMonth, decimal>> LoadBudgets(
-        Guid userId, BudgetMonth first, BudgetMonth last, CancellationToken ct)
+        Guid ledgerId, BudgetMonth first, BudgetMonth last, CancellationToken ct)
     {
         var rows = await db.Budgets
             .AsNoTracking()
-            .Where(b => b.UserId == userId
+            .Where(b => b.LedgerId == ledgerId
                 && ((b.Year == first.Year && b.Month == first.Month) || (b.Year == last.Year && b.Month == last.Month)))
             .Select(b => new { b.Year, b.Month, b.Amount })
             .ToListAsync(ct);
