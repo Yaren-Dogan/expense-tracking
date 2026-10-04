@@ -18,6 +18,9 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 - **Görevler ve bildirimler:** Faturaları hane üyelerine ata ("İnternet faturası → Ahmet"), her ay tekrarlasın.
   Görevi alana bildirim gider, son gün yaklaşınca hatırlatılır; "Ödendi" deyip tutarı yazınca harcama olarak eklenir.
   <br><img src="docs/screenshots/tasks.png" alt="Görevler ve bildirim paneli" width="560">
+- **Ay değerlendirmesi (ajan):** Ay bitince ajan ayı inceler; öne çıkanları ve bir tavsiyeyi yazar, haneye bildirir.
+- **Birikim planlayıcı (ajan):** "6 ayda ₺20.000" hedefi için hangi kalemlerden kısılacağını ve aylık bütçeyi önerir;
+  onaylayınca uygulanır. İki ajanda da sayıları kod hesaplar, model yoksa kurallarla çalışır.
 - **Hesap:** E-posta ve şifreyle kayıt/giriş. Oturum HttpOnly cookie'de tutulur.
 - Web ve mobil uyumlu PWA: telefonda "Ana ekrana ekle" ile uygulama gibi çalışır.
 
@@ -38,7 +41,8 @@ Tasarım kararları ve ölçümler: [`docs/prd-ai.md`](docs/prd-ai.md).
 yapay zekâ, veritabanı ve API. Veritabanındaki her tablo ve kolonun Türkçe açıklaması Adminer'da da görünür.
 
 Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Hesaplar, geçmiş aylar ve ortak hane:
-[`docs/prd-accounts.md`](docs/prd-accounts.md). Görevler ve bildirimler: [`docs/prd-tasks.md`](docs/prd-tasks.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
+[`docs/prd-accounts.md`](docs/prd-accounts.md). Görevler ve bildirimler: [`docs/prd-tasks.md`](docs/prd-tasks.md).
+Ajanlar: [`docs/prd-insights.md`](docs/prd-insights.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
 
 ## Çalıştırma
 

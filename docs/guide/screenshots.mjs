@@ -99,11 +99,14 @@ await yaren.page.waitForSelector('.bell-item')
 await yaren.page.locator('.bell-panel').screenshot({ path: shot('bell.png') })
 await yaren.page.click('.bell-button')
 
-// Past month: the month's close.
+// Past month: the month's close, and the review agent's write-up of it.
 await yaren.page.click('button[aria-label="Önceki ay"]')
 await yaren.page.waitForSelector('text=Ay kapanışı')
 await yaren.page.waitForSelector('.expense')
+await yaren.page.click('.review button:has-text("Değerlendir")')
+await yaren.page.waitForSelector('.review-headline')
 await yaren.page.screenshot({ path: shot('past-month.png') })
+await yaren.page.locator('.review').screenshot({ path: shot('review.png') })
 
 // --- Mobile views (Ahmet) ---
 await ahmet.page.reload()
@@ -117,6 +120,14 @@ await ahmet.page.fill('.pay-form input', '1.120,35')
 await ahmet.page.locator('.tasks').screenshot({ path: shot('task-pay.png') })
 await ahmet.page.click('.pay-form button:has-text("Vazgeç")')
 await ahmet.page.locator('.strip').screenshot({ path: shot('strip.png') })
+
+// Budget planner: a savings goal, the agent's proposal, before it is applied.
+await ahmet.page.fill('.plan-form input[inputmode=decimal]', '20.000')
+await ahmet.page.selectOption('.plan-form select', '6')
+await ahmet.page.fill('.plan-form input[maxlength="100"]', 'Yaz tatili')
+await ahmet.page.click('.plan-form button[type=submit]')
+await ahmet.page.waitForSelector('.plan')
+await ahmet.page.locator('.planner').screenshot({ path: shot('planner.png') })
 
 // --- Adminer: the descriptions stored in the database, shown in the table structure ---
 {

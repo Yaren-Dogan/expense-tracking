@@ -1,6 +1,7 @@
 # PRD — Yapay Zekâ Özellikleri
 
 Ana PRD: [`prd.md`](prd.md). Bu doküman uygulamaya eklenen üç LLM özelliğini ve tasarım kararlarını anlatır.
+Ay değerlendirmesi ve birikim planlayıcı ajanları: [`prd-insights.md`](prd-insights.md).
 
 ## Özet
 

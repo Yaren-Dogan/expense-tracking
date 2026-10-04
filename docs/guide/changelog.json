@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.6",
+    "date": "2026-10-05",
+    "title": "Ajanlar: ay değerlendirmesi ve birikim planlayıcı",
+    "items": [
+      "Ay değerlendirmesi ajanı: ay bitince ayı inceler, öne çıkanları ve bir tavsiyeyi yazar, hane üyelerine bildirim gönderir. Geçmiş ay ekranında istekle de yazdırılabilir.",
+      "Birikim planlayıcı ajanı: \"N ayda X lira\" hedefi için kısılacak kategorileri ve aylık bütçeyi önerir; onaylanınca planın aylarındaki bütçeler yazılır.",
+      "Her iki ajanda da sayıları kod hesaplar; model yoksa kurallarla çalışır.",
+      "Geliştirme ajanları: tester, security-reviewer, migration-checker, docs-keeper (ve komutları).",
+      "Güvenlik: model çağıran uçlara kullanıcı başına istek sınırı; güncellemeden sonra oturumlar artık kapanmıyor (anahtarlar veritabanında)."
+    ]
+  },
+  {
     "version": "1.5",
     "date": "2026-10-05",
     "title": "Kılavuz ve veritabanı açıklamaları",

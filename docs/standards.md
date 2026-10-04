@@ -72,6 +72,8 @@ kaydına işlem `403`, çakışma `409`.
 - [ ] Her sorgu aktif deftere göre filtreli; `IgnoreQueryFilters` yok ya da gerekçeli (açık `UserId` koşuluyla).
 - [ ] Değiştirme/silme yetkisi sunucuda kontrol ediliyor (örn. sadece kendi girdiğin harcama), arayüzde gizlemek yetmez.
 - [ ] Giriş hataları kullanıcı varlığını sızdırmıyor (bilinmeyen e-posta ile yanlış şifre aynı cevap).
+- [ ] Ajan: kullanıcının okuduğu sayılar kodda; model metni rakam/bağlantı içeriyorsa reddediliyor; kural tabanlı yedek var.
+- [ ] Ajan: veri değiştiren sonuç insan onayı istiyor; model çağıran uç rate limit'li; kullanıcı metni talimatlara girmiyor.
 - [ ] Girdi doğrulanıyor (tutar, not, tarih, ay formatı).
 - [ ] Gizli bilgi repoda değil (compose'daki yerel geliştirme şifresi hariç, açıkça belirtilmiş).
 

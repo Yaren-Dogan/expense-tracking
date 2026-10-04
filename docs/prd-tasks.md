@@ -35,7 +35,7 @@ gelince yeniler.
 | Üye ayrıldı | Kurucu | Ahmet haneden ayrıldı, görevi sana geçti: İnternet faturası · son gün 12 Ekim |
 
 - Hatırlatmaları arka plan işi (`TaskReminderScheduler`) açılışta ve saatte bir (`Tasks:ReminderIntervalMinutes`) üretir.
-- Her (kullanıcı, görev, tür) için en fazla bir bildirim: `(user_id, task_id, kind)` unique index. İş tekrar çalışsa da
+- Her (kullanıcı, görev, tür) için en fazla bir bildirim: `(user_id, subject_id, kind)` unique index (`subject_id` görev bildirimlerinde görevin kimliği). İş tekrar çalışsa da
   aynı hatırlatma ikinci kez gitmez.
 - Metin olay anında yazılır; görev sonradan silinse de bildirim okunur kalır. Tarih ve para elle biçimlenir
   (konteynerde kültür verisi olmasa da Türkçe ay adları ve `₺1.234,50`).

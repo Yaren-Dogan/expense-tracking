@@ -85,7 +85,8 @@ figcaption { margin-top: 4px; color: var(--muted); font-size: 8.4pt; text-align:
 .cover-note { margin-top: auto; color: var(--muted); font-size: 9pt; }
 
 /* ---------- Table of contents ---------- */
-.toc { list-style: none; padding: 0; columns: 1; }
+.toc { list-style: none; padding: 0; columns: 2; column-gap: 10mm; }
+.toc-2 { break-inside: avoid; }
 .toc li { margin: 0; }
 .toc a { display: block; padding: 3px 0; color: var(--text); border-bottom: 1px dotted var(--border); }
 .toc .num { display: inline-block; min-width: 30px; color: var(--primary); font-weight: 600; }
