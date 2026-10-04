@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Bütçe Hava Durumu — Kılavuz v{{version}}</title>
+<link rel="stylesheet" href="node_modules/@fontsource/inter/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/inter/600.css">
+<link rel="stylesheet" href="node_modules/@fontsource/inter/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/400.css">
+<link rel="stylesheet" href="kilavuz.css">
+</head>
+<body>
+
+<!-- ============================== KAPAK ============================== -->
+<section class="cover">
+  <div class="cover-sky">
+    <svg class="cover-icon" viewBox="0 0 120 100" aria-hidden="true">
+      <g stroke="#ffc93c" stroke-width="6" stroke-linecap="round">
+        <line x1="38" y1="8" x2="38" y2="18"/><line x1="12" y1="34" x2="2" y2="34"/>
+        <line x1="19" y1="15" x2="26" y2="22"/><line x1="57" y1="15" x2="50" y2="22"/><line x1="19" y1="53" x2="26" y2="46"/>
+      </g>
+      <circle cx="38" cy="34" r="16" fill="#ffc93c"/>
+      <path d="M40 86h58a18 18 0 0 0 0-36 26 26 0 0 0-50-4 20 20 0 0 0-8 40z" fill="#fff"/>
+    </svg>
+    <p class="cover-kicker">Kullanım ve teknik kılavuz</p>
+    <h1 class="cover-title">Bütçe Hava Durumu</h1>
+    <p class="cover-sub">Harcamalarını takip et, bütçenin durumunu hava durumu gibi gör.</p>
+  </div>
+  <div class="cover-meta">
+    <div><span>Sürüm</span><b>v{{version}}</b></div>
+    <div><span>Tarih</span><b>{{date}}</b></div>
+    <div><span>Kaynak</span><b>github.com/Yaren-Dogan/expense-tracking</b></div>
+    <div><span>İçerik</span><b>Kullanım · kurulum · mimari · veritabanı · API</b></div>
+  </div>
+  <p class="cover-note">Bu doküman her güncellemede yeniden üretilir. Veritabanı bölümü, veritabanının içine yazılmış
+    açıklamalardan otomatik oluşturulur; değişiklik geçmişi son bölümdedir.</p>
+</section>
+
+<!-- ============================== İÇİNDEKİLER ============================== -->
+<section class="page">
+  <h2 data-nonumber class="toc-title">İçindekiler</h2>
+  {{toc}}
+</section>
+
+<!-- ============================== 1. GENEL BAKIŞ ============================== -->
+<section class="page">
+<h2>Uygulama nedir?</h2>
+
+<p class="lead">Klasik harcama uygulamaları grafik ve tablo gösterir; insanlar bir süre sonra bakmayı bırakır. Bütçe Hava
+Durumu, bütçenin bugünkü durumunu herkesin bir bakışta anladığı bir dille anlatır: <b>hava durumu</b>. Bugün güneşli
+mi, fırtına mı geliyor?</p>
+
+<div class="weather-row">
+  <div class="wx" data-sky="Sunny"><b>Güneşli</b><span>Günlük payının yarısından azını harcadın</span></div>
+  <div class="wx" data-sky="PartlyCloudy"><b>Parçalı bulutlu</b><span>Payının içindesin</span></div>
+  <div class="wx" data-sky="Cloudy"><b>Bulutlu</b><span>Payının sınırındasın</span></div>
+  <div class="wx" data-sky="Rainy"><b>Yağmurlu</b><span>Payını aştın</span></div>
+  <div class="wx" data-sky="Stormy"><b>Fırtına</b><span>Payının 1,5 katından fazlası</span></div>
+</div>
+
+<h3>Özellikler</h3>
+<table class="features">
+  <tr><th>Bugünün havası</th><td>Bugünkü harcaman günlük payınla karşılaştırılır; "gönül rahatlığıyla harcayabileceğin" tutar gösterilir.</td></tr>
+  <tr><th>Son 7 gün ve ay sonu tahmini</th><td>Her günün havası ve bu hızla ayın nasıl kapanacağı.</td></tr>
+  <tr><th>Geçmiş aylar</th><td>Önceki aylara gidip harcama ve bütçe girilebilir; ayın kapanış havası görünür.</td></tr>
+  <tr><th>Ortak hane</th><td>Eşler ve aileler aynı bütçeyi ve harcama listesini paylaşır. Herkes sadece kendi girdiğini siler.</td></tr>
+  <tr><th>Görevler ve bildirimler</th><td>Faturalar hane üyelerine atanır, son gün yaklaşınca bildirim gider; "Ödendi" deyince harcama eklenir.</td></tr>
+  <tr><th>Yapay zekâ</th><td>Cümleyle harcama ekleme, anlamsal arama ve verilerinden cevap veren bütçe asistanı.</td></tr>
+  <tr><th>Her cihazda</th><td>Web ve mobil uyumlu PWA; telefonda "Ana ekrana ekle" ile uygulama gibi çalışır.</td></tr>
+</table>
+
+<h3>Teknoloji özeti</h3>
+<div class="stack">
+  <div><b>Backend</b>.NET 9, ASP.NET Core, Clean Architecture, MediatR (CQRS), FluentValidation, EF Core 9</div>
+  <div><b>Veritabanı</b>PostgreSQL 17 + pgvector (vektör arama)</div>
+  <div><b>Kimlik</b>ASP.NET Core Identity, HttpOnly cookie oturumu</div>
+  <div><b>Yapay zekâ</b>Microsoft.Extensions.AI; Google Gemini (ücretsiz) ya da yerel Ollama</div>
+  <div><b>Frontend</b>React 19, TypeScript, Vite, PWA</div>
+  <div><b>Çalıştırma</b>Docker Compose (Postgres, API, web, Adminer)</div>
+</div>
+</section>
+
+<!-- ============================== 2. KULLANIM ============================== -->
+<section class="page">
+<h2>Kullanım kılavuzu</h2>
+
+<h3>Kayıt ve giriş</h3>
+<div class="split">
+  <img class="phone" src="img/auth.png" alt="Giriş ekranı">
+  <div>
+    <p>Uygulamayı ilk açtığında giriş ekranı gelir. <b>Kayıt ol</b> sekmesinde adını, e-postanı ve şifreni gir.</p>
+    <ul>
+      <li><b>Adın</b>, hane üyelerinin seni göreceği addır.</li>
+      <li><b>Şifre</b> en az 8 karakter olmalı ve en az bir rakam içermeli.</li>
+      <li>5 kez hatalı şifre girilirse hesap 5 dakika kilitlenir.</li>
+      <li>Oturum 14 gün açık kalır; her kullanımda süre uzar. Sağ üstteki <b>Çıkış</b> ile kapatılır.</li>
+    </ul>
+    <p class="note">Hesaplardan önce bu tarayıcıda harcama girdiysen, ilk kayıtta bu harcamalar hesabına taşınır ve
+    ekranda kaç harcamanın taşındığı yazar.</p>
+  </div>
+</div>
+
+<h3>Bütçe ve hava durumu</h3>
+<div class="split">
+  <img class="phone" src="img/dashboard-mobile.png" alt="Ana ekran">
+  <div>
+    <p>Hava durumu için önce o ayın bütçesi gerekir. İlk açılışta <b>Aylık bütçeni belirle</b> düğmesine bas;
+    sonra değiştirmek için üstteki <b>Bütçe: ₺…</b> etiketine dokun.</p>
+    <p>Ana ekranın üst kısmı bugünün havasıdır:</p>
+    <ul>
+      <li><b>Gönül rahatlığıyla harcayabileceğin:</b> havayı bozmadan bugün daha ne kadar harcayabileceğin.</li>
+      <li><b>Çubuk:</b> bugünkü günlük payının ne kadarını kullandığın.</li>
+      <li><b>Günlük pay:</b> kalan bütçenin kalan günlere bölünmüş hali. Dün az harcadıysan bugünkü payın büyür.</li>
+    </ul>
+    <p>Hesap kuralları teknik bölümde, <a href="#weather-rules">hava durumu kurallarında</a> anlatılır.</p>
+  </div>
+</div>
+
+<h3>Harcama eklemek</h3>
+<div class="split">
+  <img class="crop" src="img/add-expense.png" alt="Harcama ekleme formu">
+  <div>
+    <p>Tutarı yaz (85,50 ya da 1.250,75 gibi Türkçe yazım kabul edilir), kategoriyi seç, istersen not ekle ve <b>Ekle</b>'ye bas.
+    Tarih bugündür; geçmiş bir gün de seçilebilir, gelecek seçilemez.</p>
+    <p><b>Cümleyle ekleme:</b> üstteki kutuya "dün akşam kahveye 85 lira verdim" yazıp <b>Anla</b>'ya bas. Yapay zekâ tutarı,
+    kategoriyi, notu ve tarihi forma doldurur. Kaydetmez: kontrol edip <b>Ekle</b>'ye sen basarsın.</p>
+    <p class="note">Çift dokunma ya da bağlantı kopması harcamayı iki kez kaydetmez (idempotency).</p>
+  </div>
+</div>
+</section>
+
+<section class="page">
+<h3>Harcama listesi ve son 7 gün</h3>
+<div class="split">
+  <img class="crop" src="img/expense-list.png" alt="Harcama listesi">
+  <div>
+    <p>Liste, görüntülenen ayın harcamalarını güne göre gruplar. Hanedeysen her harcamada kimin girdiği yazar
+    ("Sen" ya da üyenin adı).</p>
+    <p>Bir harcamayı silmek için yanındaki <b>×</b> işaretine bas. Hanede herkes tüm harcamaları görür ama sadece kendi
+    girdiğini silebilir; başkasının harcamasında silme işareti çıkmaz.</p>
+    <img class="crop small" src="img/strip.png" alt="Son 7 günün havası">
+    <p><b>Son 7 günün havası</b> her günün havasını ve o gün harcananı gösterir. Altındaki <b>Ay sonu tahmini</b>, bu hızla
+    ayın kaç lirayla kapanacağını söyler.</p>
+  </div>
+</div>
+
+<h3>Geçmiş aylar</h3>
+<img class="wide" src="img/past-month.png" alt="Geçmiş ay görünümü">
+<p>Sol üstteki <b>‹</b> okuyla önceki aylara gidilir; <b>›</b> ileri götürür, gelecek aya geçilemez. <b>Bu aya dön</b> ile hemen bugüne dönülür.</p>
+<ul>
+  <li>Geçmiş bir ayın havası, <b>ayın kapanışıdır</b>: toplam harcamanın bütçeye oranı ("Ayı ₺5.490 artıyla kapattın").</li>
+  <li>Geçmiş aya harcama eklerken tarih varsayılan olarak o ayın son günüdür.</li>
+  <li>Geçmiş ayların bütçesi de girilebilir ve değiştirilebilir.</li>
+</ul>
+</section>
+
+<section class="page">
+<h3>Ortak hane</h3>
+<div class="split">
+  <img class="phone" src="img/household-confirm.png" alt="Aynı haneden misiniz?">
+  <div>
+    <p>Evli çiftler ve aileler ortak bir <b>defter</b> tutar: aynı bütçe, aynı harcama listesi, aynı hava durumu.
+    Üst çubuktaki <b>Kişisel</b> düğmesi hane panelini açar.</p>
+    <ol>
+      <li><b>Hane kur:</b> bir ad ver (örn. "Doğan ailesi"). Kurucu olursun ve 8 karakterlik bir <b>davet kodu</b> alırsın.</li>
+      <li>Kodu eşine ya da ailene gönder (<b>Kopyala</b> düğmesi).</li>
+      <li><b>Katılacak kişi</b> kodu girip <b>Devam</b>'a basar. Uygulama sorar: <b>"Aynı haneden misiniz?"</b> ve hanenin adını,
+        üyelerini gösterir. <b>Evet, katıl</b> ile katılır.</li>
+    </ol>
+    <p class="note">Katılınca eski kişisel harcamaların sende kalır, hanede görünmez. Haneden ayrılınca kişisel defterine
+    dönersin; hane harcamaları hanede kalır.</p>
+  </div>
+</div>
+<div class="split">
+  <img class="crop" src="img/household-panel.png" alt="Hane paneli">
+  <div>
+    <table class="rules">
+      <tr><th>Kural</th><th>Açıklama</th></tr>
+      <tr><td>Tek hane</td><td>Bir kişi aynı anda tek hanede olabilir.</td></tr>
+      <tr><td>En fazla 10 üye</td><td>Kötüye kullanım sınırı.</td></tr>
+      <tr><td>Bütçe</td><td>Her üye değiştirebilir (ortak karar).</td></tr>
+      <tr><td>Silme</td><td>Herkes sadece kendi girdiği harcamayı siler.</td></tr>
+      <tr><td>Kurucu</td><td>Üye çıkarır, davet kodunu yeniler (eski kod çalışmaz). Ayrılırsa kuruculuk en eski üyeye geçer.</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="page">
+<h3>Görevler</h3>
+<div class="split">
+  <img class="crop" src="img/tasks.png" alt="Görevler kartı">
+  <div>
+    <p>Faturaları ve ödemeleri kişilere dağıt: "Elektrik faturası → Yaren", "İnternet faturası → Ahmet".
+    <b>+ Görev ekle</b> ile görevin adını, kimin yapacağını, son günü ve ödenince kaydedilecek kategoriyi seç.</p>
+    <ul>
+      <li><b>Her ay tekrarla</b> açıksa, görev tamamlanınca gelecek ayın görevi aynı gün kendiliğinden açılır
+        (31'i kısa aylarda ayın son gününe çekilir).</li>
+      <li>Sağdaki etiket kalan süreyi gösterir: <span class="due soon">Yarın</span> <span class="due late">1 gün gecikti</span>.</li>
+      <li>Görevi <b>alan</b> ve <b>veren</b> tamamlayabilir; <b>veren</b> ve <b>hane kurucusu</b> silebilir.</li>
+      <li>Hanesi olmayan kullanıcı da görevleri kişisel hatırlatıcı olarak kullanabilir.</li>
+      <li>Haneden ayrılan üyenin açık görevleri kurucuya geçer.</li>
+    </ul>
+  </div>
+</div>
+<div class="split">
+  <img class="crop" src="img/task-pay.png" alt="Ödendi formu">
+  <div>
+    <p><b>Ödendi:</b> düğmeye basınca tutar sorulur. Tutarı yazarsan ödeme, görevin kategorisinde (varsayılan Fatura)
+    hane harcamalarına eklenir ve bütçe havası güncellenir. Tutarı boş bırakırsan görev sadece tamamlanır.</p>
+    <p>Tamamlanan görevler kartın altındaki <b>Tamamlananlar</b> listesinde, kimin ödediği ve tutarıyla görünür.</p>
+  </div>
+</div>
+
+<h3>Bildirimler</h3>
+<div class="split">
+  <img class="crop" src="img/bell.png" alt="Bildirim paneli">
+  <div>
+    <p>Üst çubuktaki zil, okunmamış bildirim sayısını gösterir. Zile basınca panel açılır ve hepsi okundu sayılır.
+    Uygulama açıkken bildirimler dakikada bir yenilenir.</p>
+    <table class="rules">
+      <tr><th>Ne zaman</th><th>Kime</th></tr>
+      <tr><td>Görev verildi</td><td>Görevi alan (kendine verdiysen gitmez)</td></tr>
+      <tr><td>Son güne 3 gün kaldı</td><td>Görevi alan</td></tr>
+      <tr><td>Son gün geçti</td><td>Görevi alan</td></tr>
+      <tr><td>Görev tamamlandı</td><td>Görevi veren (ve başkası yaptıysa görevi alan)</td></tr>
+      <tr><td>Üye haneden ayrıldı</td><td>Görevleri devralan kurucu</td></tr>
+    </table>
+    <p class="note">Her hatırlatma bir kez gider. Bildirimler şimdilik uygulama içindedir; telefona bildirim (push) yoktur.</p>
+  </div>
+</div>
+</section>
+
+<section class="page">
+<h3>Bütçe asistanı</h3>
+<p>Sağdaki <b>Bütçe asistanı</b> kutusuna Türkçe soru sor: "Bu ay bütçem nasıl gidiyor?", "Geçen ay en çok nereye harcadım?",
+"Kahveye ne kadar veriyorum?". Asistan cevabı uydurmaz; senin verilerini okuyan araçları çalıştırır ve cevabın altında hangi
+araçları kullandığını gösterir. Sayılar her zaman kodda hesaplanır, modelden gelmez.</p>
+<img class="wide" src="../screenshots/ai.png" alt="Yapay zekâ özellikleri">
+<p class="note">Yapay zekâ özellikleri için bir Gemini API anahtarı gerekir (kurulum bölümü). Anahtar yoksa uygulamanın geri kalanı
+çalışır; bu özellikler "yapılandırılmamış" mesajı verir. Ücretsiz katmanda gönderilen veriler Google tarafından model
+geliştirmede kullanılabilir; gerçek kişisel veri yerine örnek veriyle denemek iyi olur.</p>
+
+<h3>Telefona kurmak</h3>
+<p>Uygulama bir PWA'dır. Telefonda tarayıcıdan aç; Android/Chrome'da menüden <b>Ana ekrana ekle</b>, iPhone/Safari'de
+<b>Paylaş → Ana Ekrana Ekle</b>. Simgesiyle açılır ve tam ekran çalışır.</p>
+</section>
+
+<!-- ============================== 3. KURULUM ============================== -->
+<section class="page">
+<h2>Kurulum ve çalıştırma</h2>
+
+<h3>Gerekenler</h3>
+<p>Sadece <b>Docker Desktop</b>. .NET, Node ya da PostgreSQL kurmaya gerek yok; hepsi konteynerde çalışır.</p>
+
+<h3>İlk kurulum</h3>
+<ol>
+  <li>Repoyu klonla: <code>git clone https://github.com/Yaren-Dogan/expense-tracking</code></li>
+  <li>Yapay zekâ için ücretsiz Gemini API anahtarı al: <code>aistudio.google.com/apikey</code></li>
+  <li><code>.env.example</code> dosyasını <code>.env</code> olarak kopyala ve <code>AI_API_KEY=</code> satırını doldur. <code>.env</code> git'e eklenmez.</li>
+  <li>Çalıştır: <code>docker compose up -d --build</code></li>
+  <li>Tarayıcıda aç: <code>http://localhost:8080</code></li>
+</ol>
+
+<h3>Güncelleme</h3>
+<pre>cd D:\Projects\expense-tracking
+git pull
+docker compose up -d --build</pre>
+<p>Veritabanı değişiklikleri (migration'lar) API açılırken otomatik uygulanır; veri kaybolmaz. Güncellemeden sonra eski ekran
+görünürse tarayıcıda <b>Ctrl+Shift+R</b> ile tam yenile.</p>
+
+<h3>Servisler ve adresler</h3>
+<table>
+  <tr><th>Servis</th><th>Adres</th><th>Ne işe yarar</th></tr>
+  <tr><td>web</td><td><code>http://localhost:8080</code></td><td>Uygulama (nginx, React PWA). <code>/api</code> isteklerini API'ye iletir.</td></tr>
+  <tr><td>api</td><td><code>http://localhost:5080</code></td><td>.NET API. Normalde web üzerinden kullanılır.</td></tr>
+  <tr><td>postgres</td><td><code>localhost:5432</code></td><td>PostgreSQL 17 + pgvector. Veriler <code>pgdata</code> volume'ünde kalıcıdır.</td></tr>
+  <tr><td>adminer</td><td><code>http://localhost:8081</code></td><td>Veritabanını tarayıcıdan görmek için panel.</td></tr>
+  <tr><td>ollama (opsiyonel)</td><td>—</td><td><code>docker compose --profile ollama up -d</code> ile yerel model (~7 GB indirir).</td></tr>
+</table>
+
+<h3>Veritabanına bakmak (Adminer)</h3>
+<p><code>http://localhost:8081</code> adresinde şu bilgilerle giriş yap:</p>
+<table class="kv">
+  <tr><th>Sistem</th><td>PostgreSQL</td></tr>
+  <tr><th>Sunucu</th><td><code>postgres</code></td></tr>
+  <tr><th>Kullanıcı</th><td><code>expense</code></td></tr>
+  <tr><th>Parola</th><td><code>expense_dev</code> (sadece yerel geliştirme için; <code>.env</code>'de <code>POSTGRES_PASSWORD</code> ile değiştirilebilir)</td></tr>
+  <tr><th>Veri tabanı</th><td><code>expense_tracker</code></td></tr>
+</table>
+<p>Soldan bir tabloya tıklayınca yapı görünümünde tablonun ve her kolonun Türkçe açıklaması görünür ("Comment"/"Yorum"):</p>
+<img class="wide" src="img/adminer.png" alt="Adminer'da tasks tablosunun yapısı ve açıklamaları">
+
+<h3>Ortam değişkenleri (<code>.env</code>)</h3>
+<table>
+  <tr><th>Değişken</th><th>Varsayılan</th><th>Açıklama</th></tr>
+  <tr><td><code>AI_API_KEY</code></td><td>—</td><td>Gemini API anahtarı. Boşsa yapay zekâ uçları 503 döner.</td></tr>
+  <tr><td><code>CHAT_MODEL</code></td><td><code>gemini-3.5-flash-lite</code></td><td>Sohbet/çıkarım modeli.</td></tr>
+  <tr><td><code>EMBEDDING_MODEL</code></td><td><code>gemini-embedding-001</code></td><td>Anlamsal arama vektör modeli.</td></tr>
+  <tr><td><code>AI_PROVIDER</code></td><td><code>OpenAICompatible</code></td><td><code>Ollama</code> ile yerel model.</td></tr>
+  <tr><td><code>AGENT_MODE</code></td><td><code>Planned</code></td><td>Asistanın çalışma modu (yapay zekâ bölümü).</td></tr>
+  <tr><td><code>POSTGRES_PASSWORD</code></td><td><code>expense_dev</code></td><td>Veritabanı şifresi. İnternete açılacaksa mutlaka değiştir.</td></tr>
+</table>
+</section>
+
+<!-- ============================== 4. MİMARİ ============================== -->
+<section class="page">
+<h2>Mimari</h2>
+
+<p>Backend <b>Clean Architecture</b> ile dört katmana ayrılır. Bağımlılıklar sadece içe doğrudur: Domain hiçbir şeye,
+Application sadece Domain'e bağlıdır. Veritabanı, kimlik ve yapay zekâ sağlayıcısı gibi dış dünya detayları en dış
+katmandadır; iş kuralları onlardan habersizdir ve tek başına test edilir.</p>
+
+<figure>
+<svg viewBox="0 0 720 300" class="diagram" role="img" aria-label="Katmanlar">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667085"/></marker></defs>
+  <rect x="10" y="20" width="160" height="70" rx="12" class="box web"/><text x="90" y="50" class="t">Web (React PWA)</text><text x="90" y="70" class="s">nginx · /api proxy</text>
+  <rect x="210" y="20" width="160" height="70" rx="12" class="box api"/><text x="290" y="50" class="t">Api</text><text x="290" y="70" class="s">Controller · cookie · ledger</text>
+  <rect x="410" y="20" width="160" height="70" rx="12" class="box app"/><text x="490" y="50" class="t">Application</text><text x="490" y="70" class="s">Komut/sorgu · kurallar</text>
+  <rect x="610" y="20" width="100" height="70" rx="12" class="box dom"/><text x="660" y="50" class="t">Domain</text><text x="660" y="70" class="s">Entity · hava</text>
+  <rect x="310" y="170" width="200" height="70" rx="12" class="box inf"/><text x="410" y="200" class="t">Infrastructure</text><text x="410" y="220" class="s">EF Core · Identity · AI</text>
+  <rect x="20" y="200" width="150" height="60" rx="12" class="box ext"/><text x="95" y="226" class="t">PostgreSQL</text><text x="95" y="244" class="s">+ pgvector</text>
+  <rect x="570" y="200" width="140" height="60" rx="12" class="box ext"/><text x="640" y="226" class="t">Gemini / Ollama</text><text x="640" y="244" class="s">LLM · embedding</text>
+  <line x1="170" y1="55" x2="208" y2="55" class="ln" marker-end="url(#arr)"/>
+  <line x1="370" y1="55" x2="408" y2="55" class="ln" marker-end="url(#arr)"/>
+  <line x1="570" y1="55" x2="608" y2="55" class="ln" marker-end="url(#arr)"/>
+  <line x1="290" y1="90" x2="370" y2="168" class="ln" marker-end="url(#arr)"/>
+  <line x1="450" y1="168" x2="490" y2="92" class="ln" marker-end="url(#arr)"/>
+  <line x1="310" y1="215" x2="172" y2="228" class="ln" marker-end="url(#arr)"/>
+  <line x1="510" y1="215" x2="568" y2="228" class="ln" marker-end="url(#arr)"/>
+  <text x="300" y="140" class="s">kurar (DI)</text><text x="485" y="140" class="s">arayüzlerini uygular</text>
+</svg>
+<figcaption>Oklar "bağımlıdır" anlamındadır. Infrastructure, Application'daki arayüzleri (IAppDbContext, IUserDirectory, IChatClient…) uygular.</figcaption>
+</figure>
+
+<table>
+  <tr><th>Katman</th><th>İçerik</th><th>Örnek</th></tr>
+  <tr><td><b>Domain</b></td><td>Entity'ler, iş kuralları, hava hesabı. Hiçbir pakete bağlı değil.</td><td><code>Expense.Create</code>, <code>Household.Join</code>, <code>HouseholdTask.Complete</code>, <code>BudgetWeather.ForDay</code></td></tr>
+  <tr><td><b>Application</b></td><td>Her kullanım senaryosu kendi klasöründe: komut/sorgu + handler + validator.</td><td><code>Features/Tasks/Commands/CompleteTask</code></td></tr>
+  <tr><td><b>Infrastructure</b></td><td>EF Core + PostgreSQL, Identity kullanıcıları, model istemcileri, arka plan işleri.</td><td><code>AppDbContext</code>, <code>PgvectorExpenseSearch</code>, <code>TaskReminderScheduler</code></td></tr>
+  <tr><td><b>Api</b></td><td>İnce controller'lar, oturum, hata cevapları (ProblemDetails), istek sınırı.</td><td><code>TasksController</code>, <code>LedgerMiddleware</code></td></tr>
+</table>
+
+<h3>Bir isteğin yolculuğu</h3>
+<p>Örnek: Ahmet bir görevi "Ödendi" diye işaretliyor (<code>POST /api/tasks/{id}/complete</code>, tutar 449,90).</p>
+<ol class="flow">
+  <li><b>nginx</b> isteği API'ye iletir. Tarayıcı oturum cookie'sini (<code>bhd.auth</code>) kendiliğinden gönderir.</li>
+  <li><b>Kimlik doğrulama</b> cookie'den kullanıcıyı çıkarır; oturum yoksa <code>401</code>.</li>
+  <li><b>LedgerMiddleware</b> aktif defteri belirler: Ahmet bir hanedeyse hane kimliği.</li>
+  <li><b>Controller</b> iş yapmaz: <code>CompleteTaskCommand</code>'ı MediatR ile gönderir.</li>
+  <li><b>ValidationBehavior</b> komutu FluentValidation ile doğrular (tutar 0'dan büyük, en fazla 2 ondalık); hata varsa alan bazlı <code>400</code>.</li>
+  <li><b>Handler</b> görevi aktif defterde bulur, yetkiyi kontrol eder (görevi alan ya da veren mi?), harcamayı oluşturur,
+    <code>task.Complete(...)</code> ile görevi kapatır, aylık görevin gelecek ayını ekler, görevi verene bildirim yazar.</li>
+  <li><b>SaveChanges</b> hepsini tek transaction'da yazar. İki kişi aynı anda bastıysa unique index ikinciyi reddeder → <code>409</code>.</li>
+</ol>
+
+<h3>Defter (ledger) modeli</h3>
+<p>Her harcama, bütçe ve görev bir <b>deftere</b> aittir (<code>ledger_id</code>). Kişisel defterin kimliği kullanıcının kimliği,
+hane defterinin kimliği hanenin kimliğidir. Kullanıcının <b>aktif defteri</b>: bir hanedeyse hane defteri, değilse kişisel defteri.
+Tüm okuma ve yazmalar aktif deftere göre filtrelenir; <code>user_id</code> sadece kaydı kimin girdiğini gösterir.</p>
+<figure>
+<svg viewBox="0 0 720 170" class="diagram" role="img" aria-label="Defter modeli">
+  <rect x="10" y="20" width="200" height="130" rx="12" class="box ext"/>
+  <text x="110" y="45" class="t">Kişisel defter</text><text x="110" y="64" class="s">ledger_id = Yaren'in id'si</text>
+  <text x="110" y="95" class="s">Hanelerden önceki</text><text x="110" y="112" class="s">harcamalar burada kalır</text>
+  <rect x="260" y="20" width="200" height="130" rx="12" class="box app"/>
+  <text x="360" y="45" class="t">Hane defteri</text><text x="360" y="64" class="s">ledger_id = hanenin id'si</text>
+  <text x="360" y="95" class="s">Yaren + Ahmet ortak:</text><text x="360" y="112" class="s">bütçe, harcamalar, görevler</text>
+  <rect x="510" y="20" width="200" height="130" rx="12" class="box ext"/>
+  <text x="610" y="45" class="t">Kişisel defter</text><text x="610" y="64" class="s">ledger_id = Ahmet'in id'si</text>
+  <text x="610" y="95" class="s">Haneden ayrılırsa</text><text x="610" y="112" class="s">buraya döner</text>
+  <line x1="210" y1="85" x2="258" y2="85" class="ln dash" marker-end="url(#arr)"/>
+  <line x1="510" y1="85" x2="462" y2="85" class="ln dash" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Haneye katılmak ya da ayrılmak veri kopyalamaz; sadece hangi defterin okunup yazıldığı değişir.</figcaption>
+</figure>
+<p>Bu tasarım sayesinde "katılınca eski harcamalar kişisel kalsın, ayrılınca hane harcamaları hanede kalsın" kuralı ek tablo ya da
+kopyalama olmadan sağlanır. İzolasyon iki katmanlıdır: her sorguda açık <code>LedgerId</code> koşulu ve EF Core'un global query
+filter'ı (unutulan koşula karşı ikinci savunma).</p>
+</section>
+
+<section class="page">
+<h3 id="weather-rules">Hava durumu kuralları</h3>
+<p>Gün <code>d</code>, ayın bütçesi <code>B</code> olsun:</p>
+<table class="kv">
+  <tr><th><code>S0</code></th><td>Ayın başından <code>d</code>'den önceki güne kadar harcanan toplam</td></tr>
+  <tr><th><code>R</code></th><td><code>d</code> dahil ayın kalan gün sayısı</td></tr>
+  <tr><th>Günlük pay</th><td><code>A = max(0, (B − S0) / R)</code></td></tr>
+  <tr><th><code>T</code></th><td><code>d</code> günü harcanan toplam; oran <code>r = T / A</code></td></tr>
+  <tr><th>Gönül rahatlığıyla harcanabilir</th><td><code>max(0, A − T)</code></td></tr>
+</table>
+<table>
+  <tr><th>Hava</th><th>Koşul</th></tr>
+  <tr><td>Güneşli</td><td><code>r ≤ 0,5</code></td></tr>
+  <tr><td>Parçalı bulutlu</td><td><code>0,5 &lt; r ≤ 0,9</code></td></tr>
+  <tr><td>Bulutlu</td><td><code>0,9 &lt; r ≤ 1,0</code>; ya da bütçe bitti ama bugün harcama yok</td></tr>
+  <tr><td>Yağmurlu</td><td><code>1,0 &lt; r ≤ 1,5</code></td></tr>
+  <tr><td>Fırtına</td><td><code>r &gt; 1,5</code>; ya da bütçe bitmişken harcama yapıldı</td></tr>
+</table>
+<p><b>Ay sonu tahmini:</b> günlük ortalama (<code>ay içi toplam / d.Day</code>) × ayın gün sayısı; havası <code>tahmin / B</code> oranına
+aynı eşiklerle uygulanır. Geçmiş bir ay son gününden bakıldığı için tahmin, gerçek toplamdır (ayın kapanışı).
+"Bugün" Europe/Istanbul saat dilimine göredir.</p>
+
+<h3>Tasarım kararları</h3>
+<table>
+  <tr><th>Karar</th><th>Neden</th></tr>
+  <tr><td>Repository yok, handler'lar <code>IAppDbContext</code> ile LINQ yazar</td><td>EF Core zaten unit of work + repository; tekrar sarmak sadece kod çoğaltır.</td></tr>
+  <tr><td>Durum değişikliği entity metodlarıyla (<code>Complete</code>, <code>Join</code>, <code>ChangeAmount</code>)</td><td>Kurallar tek yerde; geçersiz durum oluşturulamaz.</td></tr>
+  <tr><td>Kritik tekillikler unique index ile</td><td>"Önce kontrol et sonra yaz" yarışta bozulur; veritabanı garantisi bozulmaz.</td></tr>
+  <tr><td>Sadece unique ihlali yakalanır</td><td>Diğer veritabanı hataları gizlenmez, yukarı fırlar.</td></tr>
+  <tr><td><code>TimeProvider</code> + saat dilimi, <code>DateTime.Now</code> yok</td><td>Testlerde zaman sabitlenir; gece yarısı hataları olmaz.</td></tr>
+  <tr><td>UUID v7 birincil anahtar</td><td>Zamana göre sıralı: index'e sona eklenir, tahmin edilemez.</td></tr>
+  <tr><td>Para <code>decimal</code>, tarih <code>DateOnly</code></td><td>Kuruş yuvarlama hatası ve saat dilimi karışıklığı olmaz.</td></tr>
+  <tr><td>Yetki sunucuda hesaplanır (<code>canComplete</code>, <code>canDelete</code>)</td><td>Arayüz sadece izin verilen düğmeyi gösterir; asıl kontrol API'dedir.</td></tr>
+  <tr><td>Log'lar <code>LoggerMessage</code> + sabit EventId</td><td>Yapısal, hızlı ve aranabilir loglar; kullanıcı içeriği loglanmaz.</td></tr>
+</table>
+</section>
+
+<!-- ============================== 5. GÜVENLİK ============================== -->
+<section class="page">
+<h2>Güvenlik</h2>
+<table>
+  <tr><th>Konu</th><th>Uygulama</th></tr>
+  <tr><td>Şifre saklama</td><td>ASP.NET Core Identity, PBKDF2 hash. Şifre düz metin olarak hiçbir yerde tutulmaz. En az 8 karakter + rakam.</td></tr>
+  <tr><td>Oturum</td><td>HttpOnly cookie: sayfa script'leri okuyamaz (XSS ile token çalınamaz). <code>SameSite=Strict</code> + sadece JSON kabul eden API: başka siteden istek (CSRF) çalışmaz. 14 gün, kayan süre.</td></tr>
+  <tr><td>Kaba kuvvet</td><td>5 hatalı şifrede hesap 5 dk kilitlenir. Kayıt/giriş uçlarında IP başına, davet kodu uçlarında kullanıcı başına dakikada 10 istek.</td></tr>
+  <tr><td>Kullanıcı keşfi</td><td>Bilinmeyen e-posta ve yanlış şifre aynı cevabı alır; kayıtlı adresler bulunamaz.</td></tr>
+  <tr><td>Varsayılan kapalı</td><td>Her uç oturum ister (fallback policy). Açık olanlar sadece kayıt, giriş ve health.</td></tr>
+  <tr><td>Veri izolasyonu</td><td>Aktif deftere göre açık filtre + global query filter. Başka hanenin kaydına erişim <code>404</code>.</td></tr>
+  <tr><td>Yetki</td><td>Başkasının harcamasını silmek, görevini tamamlamak <code>403</code>. Kurucu işlemleri sadece kurucu.</td></tr>
+  <tr><td>Veri sahiplenme</td><td>Eski cihaz verisi taşınırken kayıtlı bir kullanıcının ya da hanenin kimliği gönderilirse reddedilir.</td></tr>
+  <tr><td>Davet kodu</td><td>Karışan karakterler olmadan 8 karakter (~10¹² olasılık), kriptografik rastgele; kurucu yenileyebilir.</td></tr>
+  <tr><td>Gizli bilgiler</td><td>API anahtarı sadece <code>.env</code>'de (git'e girmez). Loglara kullanıcı cümlesi yazılmaz, sadece uzunluğu.</td></tr>
+  <tr><td>Yapay zekâ</td><td>Ajan araçları salt okunur ve kullanıcı/defter parametresi almaz; model başkasının verisini isteyemez. Harcama notları talimat değil veri olarak ele alınır (prompt injection).</td></tr>
+</table>
+</section>
+
+<!-- ============================== 6. YAPAY ZEKÂ ============================== -->
+<section class="page">
+<h2>Yapay zekâ</h2>
+<table>
+  <tr><th>Özellik</th><th>Teknik</th><th>Uç</th></tr>
+  <tr><td>Cümleyle harcama ekleme</td><td>Structured output (JSON schema)</td><td><code>POST /api/expenses/parse</code></td></tr>
+  <tr><td>Anlamsal arama</td><td>RAG retrieval: embedding + pgvector</td><td><code>GET /api/expenses/search?q=</code></td></tr>
+  <tr><td>Bütçe asistanı</td><td>AI agent: araç çağırma + RAG</td><td><code>POST /api/assistant/chat</code></td></tr>
+</table>
+<p>Kod <code>Microsoft.Extensions.AI</code> soyutlamalarına (<code>IChatClient</code>, <code>IEmbeddingGenerator</code>) yazılır; uygulama
+mantığı hangi sağlayıcının kullanıldığını bilmez. Varsayılan Google Gemini (ücretsiz, disk kullanmaz); <code>AI_PROVIDER=Ollama</code>
+ile yerel model.</p>
+
+<h3>Cümleyle harcama ekleme</h3>
+<ul>
+  <li><b>LLM çıkarır, kod hesaplar.</b> Model tarih üretmez, sadece "kaç gün önce" (<code>daysAgo</code>) çıkarır; tarihi kod hesaplar.</li>
+  <li><b>JSON schema</b> ile kısıtlı çıktı: kategori bir enum, model listede olmayan değer üretemez.</li>
+  <li>Few-shot örnekler, temperature 0, çıktı doğrulama (tutar ≤ 0 ise <code>422</code>).</li>
+  <li><b>İnsan onayı:</b> öneri forma dolar, kaydı kullanıcı yapar.</li>
+</ul>
+
+<h3>Anlamsal arama (RAG)</h3>
+<figure>
+<svg viewBox="0 0 720 120" class="diagram" role="img" aria-label="RAG akışı">
+  <rect x="5" y="30" width="120" height="56" rx="10" class="box web"/><text x="65" y="55" class="t">Harcama</text><text x="65" y="73" class="s">"Food: latte"</text>
+  <rect x="165" y="30" width="130" height="56" rx="10" class="box inf"/><text x="230" y="55" class="t">İndeksleyici</text><text x="230" y="73" class="s">arka plan, 10 sn</text>
+  <rect x="335" y="30" width="120" height="56" rx="10" class="box ext"/><text x="395" y="55" class="t">Embedding</text><text x="395" y="73" class="s">1024 boyut</text>
+  <rect x="495" y="30" width="100" height="56" rx="10" class="box app"/><text x="545" y="55" class="t">pgvector</text><text x="545" y="73" class="s">HNSW, cosine</text>
+  <rect x="625" y="30" width="90" height="56" rx="10" class="box dom"/><text x="670" y="55" class="t">Arama</text><text x="670" y="73" class="s">eşik + defter</text>
+  <line x1="125" y1="58" x2="163" y2="58" class="ln" marker-end="url(#arr)"/>
+  <line x1="295" y1="58" x2="333" y2="58" class="ln" marker-end="url(#arr)"/>
+  <line x1="455" y1="58" x2="493" y2="58" class="ln" marker-end="url(#arr)"/>
+  <line x1="595" y1="58" x2="623" y2="58" class="ln" marker-end="url(#arr)"/>
+</svg>
+</figure>
+<ul>
+  <li>Her harcama <code>"&lt;Kategori&gt;: &lt;not&gt;"</code> metni olarak vektöre çevrilir; "kahve" araması notunda kahve geçmeyen "Starbucks latte"yi de bulur.</li>
+  <li>İndeksleme arka planda yapılır; model kapalıyken de harcama kaydedilir, model açılınca indekslenir.</li>
+  <li>Gemini 3072 boyut döner; ilk 1024 boyuta kesilip yeniden normalize edilir (Matryoshka).</li>
+  <li>Benzerlik eşiği modele göre: Gemini 0,68, bge-m3 0,5. Sonuçlar her zaman aktif deftere göre filtrelenir.</li>
+</ul>
+
+<h3>Bütçe asistanı (agent)</h3>
+<table>
+  <tr><th>Araç</th><th>Ne yapar</th></tr>
+  <tr><td><code>get_budget_status</code></td><td>Bugünün havası, kalan bütçe, ay sonu tahmini</td></tr>
+  <tr><td><code>get_spending_by_category</code></td><td>Tarih aralığında kategori toplamları</td></tr>
+  <tr><td><code>list_expenses</code></td><td>Harcamalar (en fazla 20), kimin girdiğiyle</td></tr>
+  <tr><td><code>search_expenses</code></td><td>Anlamsal arama (RAG)</td></tr>
+</table>
+<p><b>Planned mod (varsayılan):</b> her adımda model, JSON şemasıyla kısıtlanmış bir plan döner (hangi araç, hangi parametre);
+aracı uygulama çalıştırır. Cevaptaki sayılar araçların kodda hesapladığı cümlelerden kurulur: <b>model karar verir, kod raporlar.</b>
+<b>Native mod:</b> modelin kendi tool calling döngüsü (güçlü modeller için). Gemini'nin araç çağrısındaki "thought signature"
+OpenAI uyumlu istemcilerde kaybolduğu için Gemini ile Planned mod kullanılır. Bir istekte en fazla 5 araç turu.</p>
+</section>
+
+<!-- ============================== 7. VERİTABANI ============================== -->
+<section class="page">
+<h2>Veritabanı</h2>
+<p>PostgreSQL 17 + pgvector. Şema EF Core migration'larıyla yönetilir; API açılırken eksik migration'lar uygulanır. Tablo ve kolon
+adları <code>snake_case</code>. Toplam <b>{{tableCount}} tablo, {{columnCount}} kolon</b>.</p>
+<p class="note">Bu bölümdeki açıklamalar elle yazılmadı: veritabanının kendi içindeki tablo ve kolon açıklamalarından
+(<code>COMMENT ON</code>) üretildi. Aynı açıklamalar Adminer'da tablo yapısında "Yorum" sütununda görünür. Kaynağı kodda
+<code>SchemaComments.cs</code>'tir; açıklaması olmayan yeni bir kolon eklenirse otomatik test başarısız olur.</p>
+
+<h3>İlişki diyagramı</h3>
+<figure>
+<svg viewBox="0 0 720 380" class="diagram er" role="img" aria-label="Tablolar arası ilişkiler">
+  <g class="ent"><rect x="270" y="10" width="180" height="92" rx="10"/><text x="360" y="32" class="t">AspNetUsers</text>
+    <text x="282" y="54" class="c">id (PK)</text><text x="282" y="72" class="c">display_name, email</text><text x="282" y="90" class="c">password_hash, lockout_end</text></g>
+  <g class="ent"><rect x="10" y="10" width="200" height="74" rx="10"/><text x="110" y="32" class="t">households</text>
+    <text x="22" y="54" class="c">id (PK) = hane defteri</text><text x="22" y="72" class="c">name, invite_code (unique)</text></g>
+  <g class="ent"><rect x="10" y="130" width="200" height="74" rx="10"/><text x="110" y="152" class="t">household_member</text>
+    <text x="22" y="174" class="c">household_id, user_id (PK)</text><text x="22" y="192" class="c">role, joined_at</text></g>
+  <g class="ent ledger"><rect x="250" y="160" width="160" height="92" rx="10"/><text x="330" y="182" class="t">expenses</text>
+    <text x="262" y="204" class="c">ledger_id, user_id</text><text x="262" y="222" class="c">amount, category</text><text x="262" y="240" class="c">note, spent_on</text></g>
+  <g class="ent ledger"><rect x="10" y="285" width="200" height="74" rx="10"/><text x="110" y="307" class="t">budgets</text>
+    <text x="22" y="329" class="c">ledger_id, year, month</text><text x="22" y="347" class="c">amount</text></g>
+  <g class="ent"><rect x="240" y="285" width="200" height="74" rx="10"/><text x="340" y="307" class="t">expense_embeddings</text>
+    <text x="252" y="329" class="c">expense_id (PK)</text><text x="252" y="347" class="c">embedding vector(1024)</text></g>
+  <g class="ent ledger"><rect x="470" y="140" width="240" height="110" rx="10"/><text x="590" y="162" class="t">tasks</text>
+    <text x="482" y="184" class="c">ledger_id, series_id, due_on</text><text x="482" y="202" class="c">assignee_id, created_by_id</text>
+    <text x="482" y="220" class="c">recurrence, completed_at</text><text x="482" y="238" class="c">expense_id, paid_amount</text></g>
+  <g class="ent"><rect x="490" y="10" width="220" height="92" rx="10"/><text x="600" y="32" class="t">notifications</text>
+    <text x="502" y="54" class="c">user_id, task_id, kind (unique)</text><text x="502" y="72" class="c">message</text><text x="502" y="90" class="c">read_at</text></g>
+  <line x1="110" y1="84" x2="110" y2="128" class="rel"/><text x="118" y="110" class="s left">1 — n</text>
+  <line x1="210" y1="160" x2="270" y2="90" class="rel"/>
+  <line x1="410" y1="200" x2="468" y2="200" class="rel dash"/><text x="420" y="194" class="s left">expense_id</text>
+  <line x1="330" y1="252" x2="330" y2="283" class="rel"/><text x="338" y="272" class="s left">1 — 1</text>
+  <line x1="450" y1="60" x2="488" y2="60" class="rel"/>
+  <line x1="600" y1="102" x2="600" y2="138" class="rel dash"/><text x="608" y="124" class="s left">task_id</text>
+  <line x1="420" y1="102" x2="520" y2="140" class="rel dash"/>
+</svg>
+<figcaption>Mavi kenarlı tablolar <code>ledger_id</code> taşır: kişisel defterde kullanıcının, hane defterinde hanenin kimliği.
+Düz çizgi yabancı anahtar (FK), kesikli çizgi uygulamanın kurduğu mantıksal bağdır.</figcaption>
+</figure>
+
+<h3>Tablolar ve kolonlar</h3>
+{{schema}}
+</section>
+
+<!-- ============================== 8. API ============================== -->
+<section class="page">
+<h2>API referansı</h2>
+<p>Tüm uçlar <code>/api</code> altında JSON konuşur ve oturum ister (aksi belirtilmedikçe). Hatalar RFC 7807 <b>ProblemDetails</b>
+olarak döner; doğrulama hatalarında alan bazlı <code>errors</code> vardır. Durum kodları: yok <code>404</code>, yetkisiz işlem
+<code>403</code>, çakışma <code>409</code>, oturum yok <code>401</code>, model servisi yok <code>503</code>.</p>
+<table class="api">
+  <tr><th>Metot</th><th>Yol</th><th>Açıklama</th></tr>
+  <tr class="grp"><td colspan="3">Hesap</td></tr>
+  <tr><td>POST</td><td><code>/api/account/register</code></td><td>Kayıt + giriş (açık uç). <code>deviceUserId</code> ile eski cihaz verisi taşınır</td></tr>
+  <tr><td>POST</td><td><code>/api/account/login</code></td><td>Giriş (açık uç)</td></tr>
+  <tr><td>POST</td><td><code>/api/account/logout</code></td><td>Çıkış</td></tr>
+  <tr><td>GET</td><td><code>/api/account/me</code></td><td>Oturumdaki kullanıcı ve hanesi</td></tr>
+  <tr class="grp"><td colspan="3">Harcama, bütçe, hava</td></tr>
+  <tr><td>GET</td><td><code>/api/expenses?month=2026-10</code></td><td>Ayın harcamaları (kimin girdiğiyle)</td></tr>
+  <tr><td>POST</td><td><code>/api/expenses</code></td><td>Harcama ekle; <code>Idempotency-Key</code> header'ı opsiyonel (<code>201</code>, tekrar <code>200</code>)</td></tr>
+  <tr><td>DELETE</td><td><code>/api/expenses/{id}</code></td><td>Harcama sil (sadece giren)</td></tr>
+  <tr><td>GET / PUT</td><td><code>/api/budgets/{yyyy-MM}</code></td><td>Ayın bütçesini oku / belirle</td></tr>
+  <tr><td>GET</td><td><code>/api/weather?date=2026-10-05</code></td><td>Hava durumu ekranı (bugün, son 7 gün, ay sonu tahmini)</td></tr>
+  <tr class="grp"><td colspan="3">Hane</td></tr>
+  <tr><td>GET</td><td><code>/api/households/current</code></td><td>Hanem (yoksa <code>204</code>)</td></tr>
+  <tr><td>POST</td><td><code>/api/households</code></td><td>Hane kur</td></tr>
+  <tr><td>GET</td><td><code>/api/households/invites/{code}</code></td><td>Davet önizleme: "Aynı haneden misiniz?"</td></tr>
+  <tr><td>POST</td><td><code>/api/households/join</code></td><td>Koda göre katıl</td></tr>
+  <tr><td>POST</td><td><code>/api/households/leave</code></td><td>Haneden ayrıl</td></tr>
+  <tr><td>DELETE</td><td><code>/api/households/members/{userId}</code></td><td>Üye çıkar (kurucu)</td></tr>
+  <tr><td>POST</td><td><code>/api/households/invite-code</code></td><td>Davet kodunu yenile (kurucu)</td></tr>
+  <tr class="grp"><td colspan="3">Görev ve bildirim</td></tr>
+  <tr><td>GET</td><td><code>/api/tasks</code></td><td>Açık görevler ve son 20 tamamlanan</td></tr>
+  <tr><td>POST</td><td><code>/api/tasks</code></td><td>Görev ver</td></tr>
+  <tr><td>POST</td><td><code>/api/tasks/{id}/complete</code></td><td>Tamamla; <code>amount</code> verilirse harcama eklenir</td></tr>
+  <tr><td>DELETE</td><td><code>/api/tasks/{id}</code></td><td>Sil (veren ya da kurucu)</td></tr>
+  <tr><td>GET</td><td><code>/api/notifications</code></td><td>Son 30 bildirim ve okunmamış sayısı</td></tr>
+  <tr><td>POST</td><td><code>/api/notifications/read</code></td><td>Hepsini okundu yap</td></tr>
+  <tr class="grp"><td colspan="3">Yapay zekâ</td></tr>
+  <tr><td>POST</td><td><code>/api/expenses/parse</code></td><td>Cümleden harcama önerisi (kaydetmez)</td></tr>
+  <tr><td>GET</td><td><code>/api/expenses/search?q=kahve</code></td><td>Anlamsal arama</td></tr>
+  <tr><td>POST</td><td><code>/api/assistant/chat</code></td><td>Bütçe asistanı (sohbet geçmişi istemcide, en fazla 20 mesaj)</td></tr>
+  <tr class="grp"><td colspan="3">Sistem</td></tr>
+  <tr><td>GET</td><td><code>/health</code></td><td>Sağlık kontrolü (açık uç)</td></tr>
+</table>
+</section>
+
+<!-- ============================== 9. KALİTE ============================== -->
+<section class="page">
+<h2>Test ve kalite</h2>
+<table>
+  <tr><th>Proje</th><th>Ne test eder</th></tr>
+  <tr><td>Domain.Tests</td><td>Hava hesabı eşikleri, entity kuralları (hane, görev, aylık tekrar, kısa ay), saf ve hızlı.</td></tr>
+  <tr><td>Application.Tests</td><td>Validator'lar, yapay zekâ prompt/çıktı işleme (sahte model), bildirim metinleri.</td></tr>
+  <tr><td>Api.IntegrationTests</td><td>Gerçek PostgreSQL (Testcontainers) üzerinde uçtan uca HTTP: oturum, izolasyon, hane, görev, hatırlatma, RAG, ajan, şema açıklamaları.</td></tr>
+</table>
+<ul>
+  <li>Testler gerçek model çağırmaz: sahte sohbet ve embedding istemcileri deterministik sonuç verir.</li>
+  <li>Test saati sabittir (<code>FakeTimeProvider</code>); takvim değişince testler bozulmaz.</li>
+  <li><code>dotnet build -warnaserror</code>: uyarı da hata sayılır. Frontend <code>npm run build</code> (tip kontrolü) ve <code>npm run lint</code>.</li>
+  <li>Her özellik tarayıcıda Playwright ile iki kullanıcılı akışla da denenir; bu kılavuzdaki ekran görüntüleri o akıştan alınır.</li>
+</ul>
+<h3>Geliştirme komutları</h3>
+<pre>dotnet build -warnaserror
+dotnet test                       # Docker gerekir (Testcontainers)
+cd web &amp;&amp; npm ci &amp;&amp; npm run build &amp;&amp; npm run lint
+dotnet ef migrations add &lt;Ad&gt; -p src/ExpenseTracker.Infrastructure -s src/ExpenseTracker.Api
+cd docs/guide &amp;&amp; npm install &amp;&amp; npm run all   # bu kılavuzu yeniden üretir</pre>
+</section>
+
+<!-- ============================== 10. DEĞİŞİKLİKLER ============================== -->
+<section class="page">
+<h2>Değişiklik geçmişi</h2>
+{{changelog}}
+</section>
+
+</body>
+</html>

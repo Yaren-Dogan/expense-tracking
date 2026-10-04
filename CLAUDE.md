@@ -62,12 +62,20 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 - Prompt'lar kodda sabit olarak durur (`*Prompt.cs`) ve testlerde kontrol edilir.
 - Testler gerçek model çağırmaz: `ScriptedChatClient`, `ProgrammableChatClient`, `FakeEmbeddingGenerator`.
 
+## Kılavuz ve veritabanı açıklamaları
+
+- Kullanım ve teknik kılavuz: `docs/Butce-Hava-Durumu-Kilavuz.pdf`, kaynağı `docs/guide/` (nasıl üretildiği `docs/guide/README.md`).
+- Her tablo ve kolonun Türkçe açıklaması veritabanına yazılır (`SchemaComments.cs`, `COMMENT ON`). Yeni kolon = açıklama +
+  migration; eksikse `SchemaDocumentationTests` kırılır. Kılavuzun veritabanı bölümü bu açıklamalardan üretilir.
+
 ## Bitti tanımı
 
 1. `dotnet build -warnaserror` ve `dotnet test` yeşil.
 2. `npm run build` ve `npm run lint` yeşil.
 3. `docs/standards.md` içindeki review listesi uygulanmış; uygulanmayan madde PR açıklamasında gerekçeli.
 4. PRD değiştiyse `docs/prd.md` güncel.
+5. Kullanıcıya görünen ya da şemayı değiştiren her değişiklikte kılavuz güncel: `kilavuz.html` + `changelog.json`'a yeni
+   sürüm, `cd docs/guide && npm run all`, yeni PDF commit'li.
 
 ## Alt ajanlar
 

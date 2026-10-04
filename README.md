@@ -34,6 +34,9 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 
 Tasarım kararları ve ölçümler: [`docs/prd-ai.md`](docs/prd-ai.md).
 
+**Kılavuz (PDF):** [`docs/Butce-Hava-Durumu-Kilavuz.pdf`](docs/Butce-Hava-Durumu-Kilavuz.pdf): kullanım, kurulum, mimari, güvenlik,
+yapay zekâ, veritabanı ve API. Veritabanındaki her tablo ve kolonun Türkçe açıklaması Adminer'da da görünür.
+
 Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Hesaplar, geçmiş aylar ve ortak hane:
 [`docs/prd-accounts.md`](docs/prd-accounts.md). Görevler ve bildirimler: [`docs/prd-tasks.md`](docs/prd-tasks.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
 

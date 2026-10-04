@@ -1,0 +1,65 @@
+[
+  {
+    "version": "1.5",
+    "date": "2026-10-05",
+    "title": "Kılavuz ve veritabanı açıklamaları",
+    "items": [
+      "Bu kılavuz (PDF) eklendi; her güncellemede yeniden üretilir.",
+      "Veritabanındaki her tablo ve kolona Türkçe açıklama yazıldı (Adminer'da görünür). Açıklaması eksik kolon testte yakalanır.",
+      "Kılavuzun veritabanı bölümü bu açıklamalardan otomatik üretilir."
+    ]
+  },
+  {
+    "version": "1.4",
+    "date": "2026-10-04",
+    "title": "Görevler ve bildirimler",
+    "items": [
+      "Faturalar hane üyelerine görev olarak verilebilir; tek seferlik ya da aylık tekrarlı.",
+      "\"Ödendi\" derken tutar yazılırsa harcama olarak eklenir; aylık görevde gelecek ayın görevi açılır.",
+      "Uygulama içi bildirimler: görev verildi, son gün yaklaştı, gecikti, tamamlandı, görev devredildi.",
+      "index.html artık önbelleğe alınmıyor; güncellemeden sonra eski sürüm açılmıyor."
+    ]
+  },
+  {
+    "version": "1.3",
+    "date": "2026-10-04",
+    "title": "Hesaplar, geçmiş aylar ve ortak hane",
+    "items": [
+      "E-posta ve şifreyle kayıt/giriş (ASP.NET Core Identity, HttpOnly cookie, hesap kilitleme, istek sınırı).",
+      "Geçmiş aylara gidip harcama ve bütçe girme; geçmiş ayın kapanış havası.",
+      "Ortak hane: davet kodu, \"Aynı haneden misiniz?\" onayı, üye yönetimi, herkes sadece kendi harcamasını siler.",
+      "Hesaplardan önce tarayıcıda girilen veriler ilk kayıtta hesaba taşınır."
+    ]
+  },
+  {
+    "version": "1.2",
+    "date": "2026-10-03",
+    "title": "Ücretsiz Gemini ile yapay zekâ",
+    "items": [
+      "Varsayılan model sağlayıcısı Google Gemini ücretsiz katmanı; bilgisayara model indirmek gerekmiyor (Ollama isteğe bağlı).",
+      "Asistan Planned modda: model plan yapar, sayıları kod hesaplar.",
+      "Anlamsal arama benzerlik eşiği embedding modeline göre ayarlandı."
+    ]
+  },
+  {
+    "version": "1.1",
+    "date": "2026-10-01",
+    "title": "Yapay zekâ özellikleri",
+    "items": [
+      "Cümleyle harcama ekleme (structured output).",
+      "pgvector ile anlamsal arama (RAG retrieval).",
+      "Araç çağıran bütçe asistanı (AI agent).",
+      "Veritabanını tarayıcıdan görmek için Adminer."
+    ]
+  },
+  {
+    "version": "1.0",
+    "date": "2026-09-30",
+    "title": "İlk sürüm",
+    "items": [
+      "Aylık bütçe, harcama ekleme/silme, bütçenin hava durumu olarak gösterimi.",
+      "Son 7 günün havası ve ay sonu tahmini.",
+      ".NET 9 Clean Architecture API, React PWA, PostgreSQL, Docker Compose."
+    ]
+  }
+]

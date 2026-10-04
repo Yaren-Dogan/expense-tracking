@@ -1,0 +1,17 @@
+{
+  "name": "butce-hava-durumu-kilavuz",
+  "private": true,
+  "type": "module",
+  "description": "Kullanım ve teknik kılavuzun PDF'ini üretir (docs/Butce-Hava-Durumu-Kilavuz.pdf).",
+  "scripts": {
+    "schema": "docker compose -f ../../docker-compose.yml exec -T postgres psql -U expense -d expense_tracker -At < schema.sql > schema.json",
+    "screenshots": "node screenshots.mjs",
+    "pdf": "node build.mjs",
+    "all": "npm run schema && npm run screenshots && npm run pdf"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "playwright": "1.63.0"
+  }
+}

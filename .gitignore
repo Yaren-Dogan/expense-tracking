@@ -10,3 +10,6 @@ web/dist/
 web/dev-dist/
 *.log
 .env
+
+# Kılavuz derleme ara dosyası
+docs/guide/.build.html
