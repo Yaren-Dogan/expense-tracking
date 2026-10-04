@@ -15,6 +15,9 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 - **Ortak hane:** Eşinle ya da ailenle aynı bütçeyi ve harcama listesini paylaş. Davet koduyla katılırken
   "Aynı haneden misiniz?" diye sorulur; herkes tüm harcamaları görür, sadece kendi girdiğini siler.
   <br><img src="docs/screenshots/household.png" alt="Aynı haneden misiniz? onayı" width="260">
+- **Görevler ve bildirimler:** Faturaları hane üyelerine ata ("İnternet faturası → Ahmet"), her ay tekrarlasın.
+  Görevi alana bildirim gider, son gün yaklaşınca hatırlatılır; "Ödendi" deyip tutarı yazınca harcama olarak eklenir.
+  <br><img src="docs/screenshots/tasks.png" alt="Görevler ve bildirim paneli" width="560">
 - **Hesap:** E-posta ve şifreyle kayıt/giriş. Oturum HttpOnly cookie'de tutulur.
 - Web ve mobil uyumlu PWA: telefonda "Ana ekrana ekle" ile uygulama gibi çalışır.
 
@@ -32,7 +35,7 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 Tasarım kararları ve ölçümler: [`docs/prd-ai.md`](docs/prd-ai.md).
 
 Kurallar ve kapsam: [`docs/prd.md`](docs/prd.md). Hesaplar, geçmiş aylar ve ortak hane:
-[`docs/prd-accounts.md`](docs/prd-accounts.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
+[`docs/prd-accounts.md`](docs/prd-accounts.md). Görevler ve bildirimler: [`docs/prd-tasks.md`](docs/prd-tasks.md). Mimari standart ve review listesi: [`docs/standards.md`](docs/standards.md).
 
 ## Çalıştırma
 

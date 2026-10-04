@@ -2,7 +2,7 @@
 
 Bütçe Hava Durumu: harcama takibi yapan, bütçenin durumunu hava durumu gibi
 anlatan bir uygulama. Gereksinimler: `docs/prd.md`, yapay zekâ özellikleri: `docs/prd-ai.md`, hesaplar/geçmiş aylar/ortak hane:
-`docs/prd-accounts.md`. Mimari standart ve review
+`docs/prd-accounts.md`, görevler ve bildirimler: `docs/prd-tasks.md`. Mimari standart ve review
 listesi: `docs/standards.md`. Kod İngilizce, dokümanlar Türkçe.
 
 ## Yapı
@@ -43,6 +43,8 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 - Her uç oturum ister (fallback policy). `[AllowAnonymous]` sadece kayıt, giriş ve health için.
 - Yetki sunucuda kontrol edilir: başkasının kaydına işlem `ForbiddenException` (403), yok `NotFoundException` (404),
   çakışma `ConflictException` (409).
+- Bildirimler kullanıcıya göre filtrelenir (`UserId == IUserContext.UserId`). Arka plan işleri (indexleyici, hatırlatıcı)
+  oturumsuz çalıştığı için `IgnoreQueryFilters` kullanır; başka yerde kullanımı gerekçe yorumu ister.
 - "Bugün" `TimeProvider` + yapılandırılmış saat diliminden gelir, `DateTime.Now` kullanılmaz.
 - Sadece unique ihlali yakalanır (`UniqueConstraintViolationException`), diğer DB hataları yukarı fırlar.
 - Log mesajları `LoggerMessage` kaynak üreticisiyle, sabit `EventId` ile.
