@@ -6,12 +6,13 @@ import { WeatherIcon } from './WeatherIcon'
 interface Props {
   days: DayWeather[]
   today: string
+  title: string
 }
 
-export function ForecastStrip({ days, today }: Props) {
+export function ForecastStrip({ days, today, title }: Props) {
   return (
     <section className="card" aria-labelledby="strip-title">
-      <h2 id="strip-title" className="card-title">Son 7 günün havası</h2>
+      <h2 id="strip-title" className="card-title">{title}</h2>
       <ol className="strip">
         {days.map((day) => (
           <li

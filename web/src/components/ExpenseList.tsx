@@ -5,6 +5,9 @@ import { CATEGORY_LABELS } from '../lib/weather'
 interface Props {
   month: string
   expenses: Expense[]
+  meId: string
+  /** In a household everyone sees everything, so each row says who entered it. */
+  showAuthor: boolean
   onDelete: (id: string) => void
 }
 
@@ -14,13 +17,13 @@ function groupByDay(expenses: Expense[]) {
   return [...groups.entries()]
 }
 
-export function ExpenseList({ month, expenses, onDelete }: Props) {
+export function ExpenseList({ month, expenses, meId, showAuthor, onDelete }: Props) {
   return (
     <section className="card" aria-labelledby="list-title">
       <h2 id="list-title" className="card-title">{formatMonth(month)} harcamaları</h2>
 
       {expenses.length === 0 ? (
-        <p className="empty">Bu ay henüz harcama yok. Gökyüzü tertemiz.</p>
+        <p className="empty">Bu ayda harcama yok. Gökyüzü tertemiz.</p>
       ) : (
         groupByDay(expenses).map(([day, items]) => (
           <div key={day} className="day-group">
@@ -34,9 +37,17 @@ export function ExpenseList({ month, expenses, onDelete }: Props) {
                   <span className="expense-dot" data-category={e.category} aria-hidden="true" />
                   <div className="expense-text">
                     <span className="expense-category">{CATEGORY_LABELS[e.category]}</span>
-                    {e.note && <span className="expense-note">{e.note}</span>}
+                    {(e.note || showAuthor) && (
+                      <span className="expense-note">
+                        {showAuthor && <span className="expense-author">{e.createdBy === meId ? 'Sen' : (e.createdByName ?? 'Eski üye')}</span>}
+                        {showAuthor && e.note && ' · '}
+                        {e.note}
+                      </span>
+                    )}
                   </div>
                   <span className="expense-amount">{formatMoney(e.amount)}</span>
+                  {/* Members can delete only what they entered (docs/prd-accounts.md); the server enforces it too. */}
+                  {e.createdBy === meId ? (
                   <button
                     type="button"
                     className="icon-button"
@@ -47,6 +58,9 @@ export function ExpenseList({ month, expenses, onDelete }: Props) {
                       <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </button>
+                  ) : (
+                    <span className="icon-placeholder" aria-hidden="true" />
+                  )}
                 </li>
               ))}
             </ul>

@@ -766,3 +766,280 @@ input {
     animation: none;
   }
 }
+
+/* ---------- Accounts, month switcher, household ---------- */
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 16px;
+}
+
+@media (min-width: 900px) {
+  .topbar {
+    padding: 0 0 14px;
+  }
+}
+
+.month-switcher,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.month-label {
+  min-width: 8.5em;
+  text-align: center;
+  font-weight: 650;
+}
+
+.month-switcher .icon-button:hover {
+  color: var(--text);
+}
+
+.icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: transparent;
+}
+
+.topbar-user {
+  max-width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 12em;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-button {
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--text);
+}
+
+.notice-inline {
+  margin: 12px 16px 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.auth {
+  --wi-cloud: #c3cdda;
+  width: min(420px, 100%);
+}
+
+.auth-brand .hint {
+  margin: 4px 0 0;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.auth-title {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.field .hint,
+.field .field-error {
+  margin: 0;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.segmented button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented button[aria-selected='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.button-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.dialog-wide {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.dialog-body,
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.dialog-body {
+  gap: 18px;
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.code-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.15em;
+}
+
+.confirm {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.confirm p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.confirm-title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.household-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.invite-code {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.members {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+
+.member-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 15%, var(--surface));
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.member-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wi-sun) 30%, var(--surface));
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.button-leave {
+  justify-self: start;
+  color: var(--danger);
+}
+
+.expense-author {
+  font-weight: 600;
+}
+
+.icon-placeholder {
+  width: 36px;
+}

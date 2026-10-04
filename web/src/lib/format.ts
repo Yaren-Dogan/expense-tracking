@@ -41,3 +41,16 @@ export function parseAmount(input: string): number {
   else if (/^\d{1,3}(\.\d{3})+$/.test(normalized)) normalized = normalized.replace(/\./g, '')
   return /^\d+(\.\d{1,2})?$/.test(normalized) ? Number(normalized) : Number.NaN
 }
+
+/** yyyy-MM shifted by whole months, e.g. shiftMonth('2026-01', -1) === '2025-12'. */
+export function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number)
+  const date = new Date(y, m - 1 + delta, 1)
+  return toIsoDate(date).slice(0, 7)
+}
+
+/** Last calendar day of a yyyy-MM month as yyyy-MM-dd (day 0 of the next month). */
+export function lastDayOfMonth(month: string): string {
+  const [y, m] = month.split('-').map(Number)
+  return toIsoDate(new Date(y, m, 0))
+}

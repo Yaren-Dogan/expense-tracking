@@ -6,16 +6,18 @@ import { CATEGORY_LABELS } from '../lib/weather'
 
 interface Props {
   today: string
+  /** Today, or the last day of the past month being viewed. */
+  defaultDate: string
   onAdd: (expense: NewExpense, idempotencyKey: string) => Promise<void>
 }
 
 const NOTE_MAX = 200
 
-export function AddExpenseForm({ today, onAdd }: Props) {
+export function AddExpenseForm({ today, defaultDate, onAdd }: Props) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<Category>('Food')
   const [note, setNote] = useState('')
-  const [spentOn, setSpentOn] = useState(today)
+  const [spentOn, setSpentOn] = useState(defaultDate)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   // One key per intended expense: a double tap or a retry after a timeout reuses it, so the server
@@ -59,7 +61,7 @@ export function AddExpenseForm({ today, onAdd }: Props) {
       await onAdd({ amount: value, category, note: note.trim() || null, spentOn }, idempotencyKey)
       setAmount('')
       setNote('')
-      setSpentOn(today)
+      setSpentOn(defaultDate)
       setSentence('')
       setSuggested(false)
       setIdempotencyKey(crypto.randomUUID())

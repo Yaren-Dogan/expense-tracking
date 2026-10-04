@@ -30,3 +30,8 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   Clothing: 'Giyim',
   Other: 'Diğer',
 }
+
+/** A finished month's verdict; on its last day the projection equals what was actually spent. */
+export function closeMessage(difference: number, format: (n: number) => string) {
+  return difference >= 0 ? `Ayı ${format(difference)} artıyla kapattın.` : `Bütçeyi ${format(-difference)} aştın.`
+}

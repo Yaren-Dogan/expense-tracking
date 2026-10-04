@@ -1,5 +1,15 @@
-import { getUserId } from '../lib/userId'
-import type { AssistantReply, Budget, ChatTurn, Expense, NewExpense, ParsedExpense, Weather } from './types'
+import type {
+  AssistantReply,
+  Budget,
+  ChatTurn,
+  Expense,
+  Household,
+  InvitePreview,
+  Me,
+  NewExpense,
+  ParsedExpense,
+  Weather,
+} from './types'
 
 /** A failed API call. `fieldErrors` holds RFC 7807 validation errors keyed by camelCase field name. */
 export class ApiError extends Error {
@@ -19,19 +29,31 @@ interface ProblemDetails {
   errors?: Record<string, string[]>
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+// The session lives in an HttpOnly cookie the page cannot read, so an expired session is only noticed when the
+// API answers 401. The session hook registers a listener to switch back to the sign-in screen.
+let onSessionExpired: (() => void) | null = null
+export function setSessionExpiredHandler(handler: (() => void) | null) {
+  onSessionExpired = handler
+}
+
+interface RequestOptions extends RequestInit {
+  /** Sign-in calls answer 401 for a wrong password; that is not an expired session. */
+  authCall?: boolean
+}
+
+async function request<T>(path: string, { authCall = false, ...init }: RequestOptions = {}): Promise<T> {
   const headers = new Headers(init.headers)
-  headers.set('X-User-Id', getUserId())
   if (init.body) headers.set('Content-Type', 'application/json')
 
   let response: Response
   try {
-    response = await fetch(path, { ...init, headers })
+    response = await fetch(path, { ...init, headers, credentials: 'same-origin' })
   } catch {
     throw new ApiError(0, 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.')
   }
 
   if (!response.ok) {
+    if (response.status === 401 && !authCall) onSessionExpired?.()
     const problem = (await response.json().catch(() => ({}))) as ProblemDetails
     throw new ApiError(response.status, problem.detail ?? problem.title ?? 'Bir şeyler ters gitti.', problem.errors)
   }
@@ -39,7 +61,28 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T)
 }
 
+const post = <T>(path: string, body?: unknown, options: RequestOptions = {}) =>
+  request<T>(path, { ...options, method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) })
+
 export const api = {
+  // --- Account ---
+  me: () => request<Me>('/api/account/me', { authCall: true }),
+  register: (body: { email: string; password: string; displayName: string; deviceUserId: string | null }) =>
+    post<Me>('/api/account/register', body, { authCall: true }),
+  login: (body: { email: string; password: string; deviceUserId: string | null }) =>
+    post<Me>('/api/account/login', body, { authCall: true }),
+  logout: () => post<void>('/api/account/logout', undefined, { authCall: true }),
+
+  // --- Household ---
+  household: () => request<Household | undefined>('/api/households/current'),
+  createHousehold: (name: string) => post<Household>('/api/households', { name }),
+  previewInvite: (code: string) => request<InvitePreview>(`/api/households/invites/${encodeURIComponent(code)}`),
+  joinHousehold: (code: string) => post<Household>('/api/households/join', { code }),
+  leaveHousehold: () => post<void>('/api/households/leave'),
+  removeMember: (userId: string) => request<Household>(`/api/households/members/${userId}`, { method: 'DELETE' }),
+  regenerateInviteCode: () => post<Household>('/api/households/invite-code'),
+
+  // --- Budget weather ---
   weather: (date: string) => request<Weather>(`/api/weather?date=${date}`),
 
   expenses: (month: string) => request<Expense[]>(`/api/expenses?month=${month}`),
@@ -62,12 +105,12 @@ export const api = {
     }
   },
 
-  parseExpense: (text: string, today: string) =>
-    request<ParsedExpense>('/api/expenses/parse', { method: 'POST', body: JSON.stringify({ text, today }) }),
-
-  askAssistant: (messages: ChatTurn[], today: string) =>
-    request<AssistantReply>('/api/assistant/chat', { method: 'POST', body: JSON.stringify({ messages, today }) }),
-
   setBudget: (month: string, amount: number) =>
     request<Budget>(`/api/budgets/${month}`, { method: 'PUT', body: JSON.stringify({ amount }) }),
+
+  // --- AI ---
+  parseExpense: (text: string, today: string) => post<ParsedExpense>('/api/expenses/parse', { text, today }),
+
+  askAssistant: (messages: ChatTurn[], today: string) =>
+    post<AssistantReply>('/api/assistant/chat', { messages, today }),
 }

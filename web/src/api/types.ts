@@ -22,6 +22,8 @@ export interface Expense {
   note: string | null
   spentOn: string // yyyy-MM-dd
   createdAt: string
+  createdBy: string
+  createdByName: string | null
 }
 
 export interface NewExpense {
@@ -82,4 +84,38 @@ export interface ChatTurn {
 export interface AssistantReply {
   reply: string
   toolsUsed: string[]
+}
+
+export interface HouseholdSummary {
+  id: string
+  name: string
+}
+
+export interface Me {
+  id: string
+  email: string
+  displayName: string
+  household: HouseholdSummary | null
+  claimedExpenses: number
+}
+
+export interface HouseholdMember {
+  userId: string
+  displayName: string
+  role: 'Owner' | 'Member'
+  joinedAt: string
+  isMe: boolean
+}
+
+export interface Household {
+  id: string
+  name: string
+  inviteCode: string
+  isOwner: boolean
+  members: HouseholdMember[]
+}
+
+export interface InvitePreview {
+  householdName: string
+  memberNames: string[]
 }
