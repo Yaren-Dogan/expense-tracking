@@ -1310,3 +1310,91 @@ input {
   color: var(--muted);
   font-size: 0.8rem;
 }
+
+/* ---------- Agents: month review and planner ---------- */
+
+.review-headline {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.review-points {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.4;
+}
+
+.review-tip {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--wi-sun) 18%, var(--surface));
+  line-height: 1.4;
+}
+
+.review .hint,
+.planner .hint {
+  margin: 0;
+}
+
+.plan,
+.plan-form {
+  display: grid;
+  gap: 12px;
+}
+
+.plan-goal {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cuts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cut {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.cut-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cut-amounts {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.cut-reason {
+  margin: 4px 0 0 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.badge-soft {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.applied {
+  margin: 0;
+  color: var(--cat-market);
+  font-weight: 600;
+}

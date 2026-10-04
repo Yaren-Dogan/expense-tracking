@@ -157,13 +157,19 @@ export interface CompleteTaskResult {
   next: TaskItem | null
 }
 
-export type NotificationKind = 'TaskAssigned' | 'TaskDueSoon' | 'TaskOverdue' | 'TaskCompleted'
+export type NotificationKind =
+  | 'TaskAssigned'
+  | 'TaskDueSoon'
+  | 'TaskOverdue'
+  | 'TaskCompleted'
+  | 'MonthReviewReady'
+  | 'BudgetPlanApplied'
 
 export interface AppNotification {
   id: string
   kind: NotificationKind
   message: string
-  taskId: string
+  subjectId: string
   createdAt: string
   isRead: boolean
 }
@@ -171,4 +177,45 @@ export interface AppNotification {
 export interface NotificationList {
   unreadCount: number
   items: AppNotification[]
+}
+
+export interface MonthReview {
+  id: string
+  month: string
+  headline: string
+  highlights: string[]
+  tip: string
+  generatedBy: string // model name, or "kurallar"
+  generatedAt: string
+}
+
+export type CutLevel = 'Light' | 'Medium' | 'Strong'
+
+export interface PlanCut {
+  category: Category
+  level: CutLevel
+  currentMonthly: number
+  targetMonthly: number
+  reason: string
+}
+
+export interface BudgetPlan {
+  id: string
+  purpose: string
+  goalAmount: number
+  requestedMonths: number
+  months: number
+  isExtended: boolean
+  startMonth: string
+  endMonth: string
+  baselineMonthly: number
+  monthlySaving: number
+  monthlyBudget: number
+  cuts: PlanCut[]
+  advice: string
+  generatedBy: string
+  createdByName: string
+  createdAt: string
+  appliedAt: string | null
+  appliedByName: string | null
 }

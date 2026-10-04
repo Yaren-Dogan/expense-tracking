@@ -1,12 +1,14 @@
 import type {
   AssistantReply,
   Budget,
+  BudgetPlan,
   ChatTurn,
   CompleteTaskResult,
   Expense,
   Household,
   InvitePreview,
   Me,
+  MonthReview,
   NewExpense,
   NewTask,
   NotificationList,
@@ -95,6 +97,22 @@ export const api = {
   deleteTask: (id: string) => request<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
   notifications: () => request<NotificationList>('/api/notifications'),
   markNotificationsRead: () => post<void>('/api/notifications/read'),
+
+  // --- Agents: month review and budget planner ---
+  review: async (month: string): Promise<MonthReview | null> => {
+    try {
+      return await request<MonthReview>(`/api/reviews/${month}`)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null
+      throw error
+    }
+  },
+  createReview: (month: string, refresh: boolean) =>
+    post<MonthReview>(`/api/reviews/${month}${refresh ? '?refresh=true' : ''}`),
+  latestPlan: () => request<BudgetPlan | undefined>('/api/plans/latest'),
+  createPlan: (goalAmount: number, months: number, purpose: string | null) =>
+    post<BudgetPlan>('/api/plans', { goalAmount, months, purpose }),
+  applyPlan: (id: string) => post<BudgetPlan>(`/api/plans/${id}/apply`),
 
   // --- Budget weather ---
   weather: (date: string) => request<Weather>(`/api/weather?date=${date}`),

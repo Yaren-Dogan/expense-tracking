@@ -8,10 +8,13 @@ import { ExpenseList } from './components/ExpenseList'
 import { ForecastStrip } from './components/ForecastStrip'
 import { HouseholdDialog } from './components/HouseholdDialog'
 import { MonthForecastCard } from './components/MonthForecastCard'
+import { PlannerCard } from './components/PlannerCard'
+import { ReviewCard } from './components/ReviewCard'
 import { TasksCard } from './components/TasksCard'
 import { TopBar } from './components/TopBar'
 import { WeatherHero } from './components/WeatherHero'
 import { useDashboard } from './hooks/useDashboard'
+import { shiftMonth } from './lib/format'
 import { useSession } from './hooks/useSession'
 
 export default function App() {
@@ -70,6 +73,12 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
   const dashboard = useDashboard()
   const [budgetOpen, setBudgetOpen] = useState(false)
   const { weather } = dashboard
+  // A finished month shows its review; the first week of a new month also shows last month's, once it is written.
+  const reviewMonth = !dashboard.isCurrentMonth
+    ? dashboard.month
+    : Number(dashboard.today.slice(8, 10)) <= 7
+      ? shiftMonth(dashboard.month, -1)
+      : null
 
   const topBar = (
     <TopBar
@@ -120,6 +129,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
 
       <div className="layout">
         <div className="column">
+          {reviewMonth && <ReviewCard key={reviewMonth} month={reviewMonth} offerToCreate={!dashboard.isCurrentMonth} />}
           <AddExpenseForm
             key={dashboard.asOf}
             today={dashboard.today}
@@ -135,6 +145,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
         </div>
         <div className="column">
           <TasksCard me={me} today={dashboard.today} onExpenseAdded={dashboard.reload} />
+          {dashboard.isCurrentMonth && <PlannerCard onApplied={dashboard.reload} />}
           <AssistantPanel today={dashboard.today} />
           <ExpenseList
             month={dashboard.month}

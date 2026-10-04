@@ -10,6 +10,8 @@ const ICONS: Record<NotificationKind, string> = {
   TaskDueSoon: '⏰',
   TaskOverdue: '⚠️',
   TaskCompleted: '✅',
+  MonthReviewReady: '📊',
+  BudgetPlanApplied: '🎯',
 }
 
 /** In-app notifications. Polled once a minute and whenever the app comes back to the foreground. */
