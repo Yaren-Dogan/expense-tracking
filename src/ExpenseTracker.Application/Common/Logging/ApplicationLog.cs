@@ -39,4 +39,24 @@ internal static partial class ApplicationLog
     [LoggerMessage(EventId = 1201, EventName = "AssistantAnswered", Level = LogLevel.Information,
         Message = "Assistant answered user {UserId} in {ElapsedMs} ms using tools [{Tools}]")]
     public static partial void AssistantAnswered(this ILogger logger, Guid userId, long elapsedMs, string tools);
+
+    [LoggerMessage(EventId = 1301, EventName = "TaskCreated", Level = LogLevel.Information,
+        Message = "Task {TaskId} created in ledger {LedgerId} for {AssigneeId}")]
+    public static partial void TaskCreated(this ILogger logger, Guid taskId, Guid ledgerId, Guid assigneeId);
+
+    [LoggerMessage(EventId = 1302, EventName = "TaskCompleted", Level = LogLevel.Information,
+        Message = "Task {TaskId} completed by {UserId}, payment expense {ExpenseId}")]
+    public static partial void TaskCompleted(this ILogger logger, Guid taskId, Guid userId, Guid? expenseId);
+
+    [LoggerMessage(EventId = 1303, EventName = "TaskDeleted", Level = LogLevel.Information,
+        Message = "Task {TaskId} deleted by {UserId}")]
+    public static partial void TaskDeleted(this ILogger logger, Guid taskId, Guid userId);
+
+    [LoggerMessage(EventId = 1304, EventName = "TaskRemindersSent", Level = LogLevel.Information,
+        Message = "{Count} task reminders sent for {Today}")]
+    public static partial void TaskRemindersSent(this ILogger logger, int count, DateOnly today);
+
+    [LoggerMessage(EventId = 1305, EventName = "TasksHandedOver", Level = LogLevel.Information,
+        Message = "{Count} open tasks of {LeaverId} handed to {OwnerId} in household {HouseholdId}")]
+    public static partial void TasksHandedOver(this ILogger logger, int count, Guid leaverId, Guid ownerId, Guid householdId);
 }

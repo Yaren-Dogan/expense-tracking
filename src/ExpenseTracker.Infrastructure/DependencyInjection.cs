@@ -10,6 +10,8 @@ using OllamaSharp;
 using OpenAI;
 using System.ClientModel;
 using ExpenseTracker.Infrastructure.Time;
+using ExpenseTracker.Application.Features.Tasks;
+using ExpenseTracker.Infrastructure.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +40,13 @@ public static class DependencyInjection
             .ValidateOnStart();
         services.AddSingleton<IAppClock, AppClock>();
         services.AddScoped<IUserDirectory, UserDirectory>();
+
+        services.AddOptions<TaskOptions>()
+            .Bind(configuration.GetSection(TaskOptions.SectionName))
+            .Validate(o => o.ReminderDaysBefore is >= 0 and <= 30, "Tasks:ReminderDaysBefore must be 0-30.")
+            .Validate(o => o.ReminderIntervalMinutes >= 1, "Tasks:ReminderIntervalMinutes must be at least 1.")
+            .ValidateOnStart();
+        services.AddHostedService<TaskReminderScheduler>();
 
         services.AddAi(configuration);
 

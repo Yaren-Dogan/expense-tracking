@@ -3,6 +3,8 @@ using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Domain.Common;
 using ExpenseTracker.Domain.Entities;
 using ExpenseTracker.Domain.Households;
+using ExpenseTracker.Domain.Notifications;
+using ExpenseTracker.Domain.Tasks;
 using ExpenseTracker.Infrastructure.Ai;
 using ExpenseTracker.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -21,12 +23,15 @@ public sealed class AppDbContext(
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<Household> Households => Set<Household>();
+    public DbSet<HouseholdTask> Tasks => Set<HouseholdTask>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     // Not on IAppDbContext: only Infrastructure's search and indexer touch the vector index.
     public DbSet<ExpenseEmbedding> ExpenseEmbeddings => Set<ExpenseEmbedding>();
 
     // Read through a context member so EF re-evaluates it per query instead of baking in a constant.
     private Guid CurrentLedgerId => userContext.LedgerId;
+    private Guid CurrentUserId => userContext.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +45,8 @@ public sealed class AppDbContext(
         // Embeddings are not filtered here: search always joins them to (filtered) expenses.
         modelBuilder.Entity<Expense>().HasQueryFilter(e => e.LedgerId == CurrentLedgerId);
         modelBuilder.Entity<Budget>().HasQueryFilter(b => b.LedgerId == CurrentLedgerId);
+        modelBuilder.Entity<HouseholdTask>().HasQueryFilter(t => t.LedgerId == CurrentLedgerId);
+        modelBuilder.Entity<Notification>().HasQueryFilter(n => n.UserId == CurrentUserId);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

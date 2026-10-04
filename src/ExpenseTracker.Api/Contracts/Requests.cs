@@ -24,3 +24,13 @@ public sealed record HouseholdSummary(Guid Id, string Name);
 public sealed record CreateHouseholdRequest(string Name);
 
 public sealed record JoinHouseholdRequest(string Code);
+
+public sealed record CreateTaskRequest(
+    string Title,
+    Guid AssigneeId,
+    DateOnly DueOn,
+    ExpenseTracker.Domain.Tasks.TaskRecurrence Recurrence = ExpenseTracker.Domain.Tasks.TaskRecurrence.None,
+    ExpenseCategory Category = ExpenseCategory.Bills);
+
+/// <param name="Amount">Optional: when given, the payment is also recorded as an expense.</param>
+public sealed record CompleteTaskRequest(decimal? Amount);

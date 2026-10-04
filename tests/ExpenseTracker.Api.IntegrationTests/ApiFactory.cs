@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MediatR;
 using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
@@ -37,6 +39,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await db.SaveChangesAsync(default);
     }
 
+    /// <summary>Runs the reminder job once, as its background scheduler would (the scheduler is off in tests).</summary>
+    public async Task<int> RunTaskRemindersAsync()
+    {
+        await using var scope = Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<ISender>()
+            .Send(new ExpenseTracker.Application.Features.Tasks.Commands.SendTaskReminders.SendTaskRemindersCommand());
+    }
+
     public new async Task DisposeAsync()
     {
         await base.DisposeAsync();
@@ -57,6 +67,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);
+            // Tests trigger reminders explicitly, so a background run can never race an assertion.
+            foreach (var scheduler in services.Where(d => d.ServiceType == typeof(IHostedService)
+                         && d.ImplementationType == typeof(ExpenseTracker.Infrastructure.Tasks.TaskReminderScheduler)).ToList())
+                services.Remove(scheduler);
             services.AddSingleton<IChatClient>(Model);
             services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>, FakeEmbeddingGenerator>();
         });
