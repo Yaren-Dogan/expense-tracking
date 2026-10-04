@@ -1,5 +1,6 @@
 import type { Me } from '../api/types'
 import { formatMonth } from '../lib/format'
+import { NotificationBell } from './NotificationBell'
 
 interface Props {
   me: Me
@@ -45,6 +46,7 @@ export function TopBar(props: Props) {
       </nav>
 
       <div className="topbar-actions">
+        <NotificationBell />
         <button type="button" className="pill" onClick={props.onOpenHousehold}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <path

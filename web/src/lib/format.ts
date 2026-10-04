@@ -54,3 +54,20 @@ export function lastDayOfMonth(month: string): string {
   const [y, m] = month.split('-').map(Number)
   return toIsoDate(new Date(y, m, 0))
 }
+
+/** Whole days from `from` to `to` (both yyyy-MM-dd); negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((fromIsoDate(to).getTime() - fromIsoDate(from).getTime()) / 86_400_000)
+}
+
+export const formatShortDate = (iso: string) =>
+  fromIsoDate(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })
+
+/** "az önce", "5 dk önce", "3 sa önce", then the date. */
+export function formatAgo(timestamp: string, now: Date = new Date()): string {
+  const minutes = Math.floor((now.getTime() - new Date(timestamp).getTime()) / 60_000)
+  if (minutes < 1) return 'az önce'
+  if (minutes < 60) return `${minutes} dk önce`
+  if (minutes < 24 * 60) return `${Math.floor(minutes / 60)} sa önce`
+  return new Date(timestamp).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })
+}

@@ -2,12 +2,17 @@ import type {
   AssistantReply,
   Budget,
   ChatTurn,
+  CompleteTaskResult,
   Expense,
   Household,
   InvitePreview,
   Me,
   NewExpense,
+  NewTask,
+  NotificationList,
   ParsedExpense,
+  TaskItem,
+  TaskList,
   Weather,
 } from './types'
 
@@ -81,6 +86,15 @@ export const api = {
   leaveHousehold: () => post<void>('/api/households/leave'),
   removeMember: (userId: string) => request<Household>(`/api/households/members/${userId}`, { method: 'DELETE' }),
   regenerateInviteCode: () => post<Household>('/api/households/invite-code'),
+
+  // --- Tasks & notifications ---
+  tasks: () => request<TaskList>('/api/tasks'),
+  createTask: (task: NewTask) => post<TaskItem>('/api/tasks', task),
+  completeTask: (id: string, amount: number | null) =>
+    post<CompleteTaskResult>(`/api/tasks/${id}/complete`, { amount }),
+  deleteTask: (id: string) => request<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
+  notifications: () => request<NotificationList>('/api/notifications'),
+  markNotificationsRead: () => post<void>('/api/notifications/read'),
 
   // --- Budget weather ---
   weather: (date: string) => request<Weather>(`/api/weather?date=${date}`),

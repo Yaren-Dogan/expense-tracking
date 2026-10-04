@@ -119,3 +119,56 @@ export interface InvitePreview {
   householdName: string
   memberNames: string[]
 }
+
+export type TaskRecurrence = 'None' | 'Monthly'
+
+export interface TaskItem {
+  id: string
+  title: string
+  category: Category
+  assigneeId: string
+  assigneeName: string
+  createdById: string
+  createdByName: string
+  dueOn: string
+  recurrence: TaskRecurrence
+  completedAt: string | null
+  completedByName: string | null
+  paidAmount: number | null
+  canComplete: boolean
+  canDelete: boolean
+}
+
+export interface TaskList {
+  open: TaskItem[]
+  done: TaskItem[]
+}
+
+export interface NewTask {
+  title: string
+  assigneeId: string
+  dueOn: string
+  recurrence: TaskRecurrence
+  category: Category
+}
+
+export interface CompleteTaskResult {
+  completed: TaskItem
+  next: TaskItem | null
+}
+
+export type NotificationKind = 'TaskAssigned' | 'TaskDueSoon' | 'TaskOverdue' | 'TaskCompleted'
+
+export interface AppNotification {
+  id: string
+  kind: NotificationKind
+  message: string
+  taskId: string
+  createdAt: string
+  isRead: boolean
+}
+
+export interface NotificationList {
+  unreadCount: number
+  items: AppNotification[]
+}

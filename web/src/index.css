@@ -1043,3 +1043,270 @@ input {
 .icon-placeholder {
   width: 36px;
 }
+
+/* ---------- Tasks & notifications ---------- */
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.link-muted {
+  color: var(--muted);
+}
+
+.button-small {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.task-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.task:first-child {
+  border-top: 0;
+}
+
+.task-main,
+.task-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.task-avatar,
+.task-check {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 15%, var(--surface));
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.task-check {
+  background: color-mix(in srgb, var(--cat-market) 15%, var(--surface));
+  color: var(--cat-market);
+}
+
+.task-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-done .task-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.task-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.due {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.due[data-tone='soon'] {
+  background: color-mix(in srgb, var(--wi-sun) 28%, var(--surface));
+  color: var(--text);
+}
+
+.due[data-tone='late'] {
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  color: var(--danger);
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 42px;
+}
+
+.task-form,
+.pay-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.pay-form {
+  margin-left: 42px;
+  padding: 12px;
+}
+
+.pay-form .hint,
+.pay-form .field-error {
+  margin: 0;
+}
+
+.field select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font: inherit;
+  color: inherit;
+}
+
+.task-form .field input {
+  background: var(--surface);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: end;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.amount-field-small input {
+  font-size: 1.1rem;
+}
+
+.done {
+  display: grid;
+  gap: 4px;
+}
+
+.done .link-button {
+  justify-self: start;
+}
+
+.bell {
+  position: relative;
+}
+
+.bell-button {
+  position: relative;
+}
+
+.bell-button:hover {
+  color: var(--text);
+}
+
+.bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+.bell-panel {
+  /* On phones the bell sits at the left edge, so the panel spans the screen instead of hanging off it. */
+  position: fixed;
+  top: 64px;
+  right: 16px;
+  left: 16px;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  max-height: min(420px, 70dvh);
+  padding: 14px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgb(16 24 40 / 18%);
+}
+
+@media (min-width: 600px) {
+  .bell-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    left: auto;
+    width: 340px;
+  }
+}
+
+.bell-title {
+  margin: 0;
+  font-weight: 650;
+}
+
+.bell-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bell-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.bell-item[data-unread='true'] {
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+}
+
+.bell-message {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.bell-time {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}

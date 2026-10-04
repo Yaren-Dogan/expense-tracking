@@ -8,6 +8,7 @@ import { ExpenseList } from './components/ExpenseList'
 import { ForecastStrip } from './components/ForecastStrip'
 import { HouseholdDialog } from './components/HouseholdDialog'
 import { MonthForecastCard } from './components/MonthForecastCard'
+import { TasksCard } from './components/TasksCard'
 import { TopBar } from './components/TopBar'
 import { WeatherHero } from './components/WeatherHero'
 import { useDashboard } from './hooks/useDashboard'
@@ -133,6 +134,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
           {dashboard.isCurrentMonth && <MonthForecastCard weather={weather} />}
         </div>
         <div className="column">
+          <TasksCard me={me} today={dashboard.today} onExpenseAdded={dashboard.reload} />
           <AssistantPanel today={dashboard.today} />
           <ExpenseList
             month={dashboard.month}
