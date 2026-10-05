@@ -8,12 +8,14 @@ interface Props {
   today: string
   /** Today, or the last day of the past month being viewed. */
   defaultDate: string
+  /** Which ledger the expense goes to, shown so a household member never adds to the wrong one. */
+  ledgerLabel: string
   onAdd: (expense: NewExpense, idempotencyKey: string) => Promise<void>
 }
 
 const NOTE_MAX = 200
 
-export function AddExpenseForm({ today, defaultDate, onAdd }: Props) {
+export function AddExpenseForm({ today, defaultDate, ledgerLabel, onAdd }: Props) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<Category>('Food')
   const [note, setNote] = useState('')
@@ -78,7 +80,10 @@ export function AddExpenseForm({ today, defaultDate, onAdd }: Props) {
 
   return (
     <section className="card add-form">
-      <h2 className="card-title">Harcama ekle</h2>
+      <div className="card-head">
+        <h2 className="card-title">Harcama ekle</h2>
+        <span className="ledger-tag">{ledgerLabel}</span>
+      </div>
 
       <form className="quick-entry" onSubmit={understand}>
         <label className="visually-hidden" htmlFor="quick-entry">Cümleyle harcama ekle</label>

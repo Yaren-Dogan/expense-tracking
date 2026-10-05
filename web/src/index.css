@@ -1398,3 +1398,51 @@ input {
   color: var(--cat-market);
   font-weight: 600;
 }
+
+/* ---------- Ledger switcher ---------- */
+
+.ledger-switch {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.ledger-switch button {
+  max-width: 10em;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ledger-switch button[aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.pill-icon:hover {
+  color: var(--text);
+}
+
+.ledger-tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.task-done .icon-button {
+  flex: none;
+}

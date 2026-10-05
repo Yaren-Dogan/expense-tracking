@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ApiError, api, setSessionExpiredHandler } from '../api/client'
 import type { Me } from '../api/types'
 import { forgetLegacyDeviceId, getLegacyDeviceId } from '../lib/deviceId'
+import { setLedgerChoice, type LedgerChoice } from '../lib/ledgerChoice'
 
 export type Session =
   | { status: 'loading' }
@@ -71,5 +72,14 @@ export function useSession() {
     setSession({ status: 'signedIn', me, claimedExpenses: 0 })
   }, [])
 
-  return { session, login, register, logout, refresh, retry }
+  /** Switches between the household and the personal ledger without leaving the household. */
+  const switchLedger = useCallback(
+    async (choice: LedgerChoice) => {
+      setLedgerChoice(choice)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  return { session, login, register, logout, refresh, retry, switchLedger }
 }

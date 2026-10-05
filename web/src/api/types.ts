@@ -96,6 +96,8 @@ export interface Me {
   email: string
   displayName: string
   household: HouseholdSummary | null
+  /** The ledger on screen: the household's, or the personal one (always personal without a household). */
+  ledger: 'household' | 'personal'
   claimedExpenses: number
 }
 
@@ -133,6 +135,7 @@ export interface TaskItem {
   dueOn: string
   recurrence: TaskRecurrence
   completedAt: string | null
+  completedById: string | null
   completedByName: string | null
   paidAmount: number | null
   canComplete: boolean

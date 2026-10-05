@@ -15,10 +15,11 @@ import { TopBar } from './components/TopBar'
 import { WeatherHero } from './components/WeatherHero'
 import { useDashboard } from './hooks/useDashboard'
 import { shiftMonth } from './lib/format'
+import type { LedgerChoice } from './lib/ledgerChoice'
 import { useSession } from './hooks/useSession'
 
 export default function App() {
-  const { session, login, register, logout, refresh, retry } = useSession()
+  const { session, login, register, logout, retry, switchLedger } = useSession()
   // Lives above the dashboard so it stays open while a household change remounts the dashboard.
   const [householdOpen, setHouseholdOpen] = useState(false)
 
@@ -47,16 +48,22 @@ export default function App() {
       return (
         <>
           <Dashboard
-            key={session.me.household?.id ?? session.me.id}
+            key={`${session.me.ledger}:${session.me.household?.id ?? session.me.id}`}
             me={session.me}
             claimedExpenses={session.claimedExpenses}
             onOpenHousehold={() => setHouseholdOpen(true)}
+            onSwitchLedger={(choice) => void switchLedger(choice)}
             onLogout={() => {
               setHouseholdOpen(false)
               void logout()
             }}
           />
-          <HouseholdDialog open={householdOpen} onClose={() => setHouseholdOpen(false)} onLedgerChanged={refresh} />
+          <HouseholdDialog
+            open={householdOpen}
+            onClose={() => setHouseholdOpen(false)}
+            // Creating or joining a household opens its ledger; leaving falls back to the personal one anyway.
+            onLedgerChanged={() => switchLedger('household')}
+          />
         </>
       )
   }
@@ -66,10 +73,11 @@ interface DashboardProps {
   me: Me
   claimedExpenses: number
   onOpenHousehold: () => void
+  onSwitchLedger: (choice: LedgerChoice) => void
   onLogout: () => void
 }
 
-function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: DashboardProps) {
+function Dashboard({ me, claimedExpenses, onOpenHousehold, onSwitchLedger, onLogout }: DashboardProps) {
   const dashboard = useDashboard()
   const [budgetOpen, setBudgetOpen] = useState(false)
   const { weather } = dashboard
@@ -89,6 +97,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
       onNextMonth={() => dashboard.goToMonth(1)}
       onCurrentMonth={dashboard.goToCurrentMonth}
       onOpenHousehold={onOpenHousehold}
+      onSwitchLedger={onSwitchLedger}
       onLogout={onLogout}
     />
   )
@@ -134,6 +143,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
             key={dashboard.asOf}
             today={dashboard.today}
             defaultDate={dashboard.asOf}
+            ledgerLabel={me.ledger === 'household' && me.household ? `${me.household.name} defterine eklenir` : 'Kişisel defterine eklenir'}
             onAdd={dashboard.addExpense}
           />
           <ForecastStrip
@@ -151,7 +161,7 @@ function Dashboard({ me, claimedExpenses, onOpenHousehold, onLogout }: Dashboard
             month={dashboard.month}
             expenses={dashboard.expenses}
             meId={me.id}
-            showAuthor={me.household !== null}
+            showAuthor={me.ledger === 'household'}
             onDelete={(id) => void dashboard.deleteExpense(id)}
           />
         </div>

@@ -1,5 +1,6 @@
 import type { Me } from '../api/types'
 import { formatMonth } from '../lib/format'
+import type { LedgerChoice } from '../lib/ledgerChoice'
 import { NotificationBell } from './NotificationBell'
 
 interface Props {
@@ -10,8 +11,21 @@ interface Props {
   onNextMonth: () => void
   onCurrentMonth: () => void
   onOpenHousehold: () => void
+  onSwitchLedger: (choice: LedgerChoice) => void
   onLogout: () => void
 }
+
+const HouseIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+    <path
+      d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
 
 const Chevron = ({ flip }: { flip?: boolean }) => (
   <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style={flip ? { transform: 'scaleX(-1)' } : undefined}>
@@ -47,18 +61,35 @@ export function TopBar(props: Props) {
 
       <div className="topbar-actions">
         <NotificationBell />
-        <button type="button" className="pill" onClick={props.onOpenHousehold}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <path
-              d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {me.household ? me.household.name : 'Kişisel'}
-        </button>
+        {me.household ? (
+          <>
+            {/* Household members switch ledgers here without leaving the household; the house button manages it. */}
+            <div className="ledger-switch" role="group" aria-label="Defter">
+              <button
+                type="button"
+                aria-pressed={me.ledger === 'personal'}
+                onClick={() => me.ledger !== 'personal' && props.onSwitchLedger('personal')}
+              >
+                Kişisel
+              </button>
+              <button
+                type="button"
+                aria-pressed={me.ledger === 'household'}
+                onClick={() => me.ledger !== 'household' && props.onSwitchLedger('household')}
+              >
+                {me.household.name}
+              </button>
+            </div>
+            <button type="button" className="icon-button pill-icon" aria-label="Hane ayarları" title="Hane ayarları" onClick={props.onOpenHousehold}>
+              <HouseIcon />
+            </button>
+          </>
+        ) : (
+          <button type="button" className="pill" onClick={props.onOpenHousehold}>
+            <HouseIcon />
+            Kişisel
+          </button>
+        )}
         <span className="topbar-user" title={me.email}>{me.displayName}</span>
         <button type="button" className="link-button" onClick={props.onLogout}>
           Çıkış

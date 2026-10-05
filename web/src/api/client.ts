@@ -18,6 +18,8 @@ import type {
   Weather,
 } from './types'
 
+import { getLedgerChoice } from '../lib/ledgerChoice'
+
 /** A failed API call. `fieldErrors` holds RFC 7807 validation errors keyed by camelCase field name. */
 export class ApiError extends Error {
   readonly status: number
@@ -51,6 +53,8 @@ interface RequestOptions extends RequestInit {
 async function request<T>(path: string, { authCall = false, ...init }: RequestOptions = {}): Promise<T> {
   const headers = new Headers(init.headers)
   if (init.body) headers.set('Content-Type', 'application/json')
+  // A household member can switch to their personal ledger; the server picks the ledger from this header.
+  if (getLedgerChoice() === 'personal') headers.set('X-Ledger', 'personal')
 
   let response: Response
   try {
@@ -99,14 +103,8 @@ export const api = {
   markNotificationsRead: () => post<void>('/api/notifications/read'),
 
   // --- Agents: month review and budget planner ---
-  review: async (month: string): Promise<MonthReview | null> => {
-    try {
-      return await request<MonthReview>(`/api/reviews/${month}`)
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return null
-      throw error
-    }
-  },
+  review: async (month: string): Promise<MonthReview | null> =>
+    (await request<MonthReview | undefined>(`/api/reviews/${month}`)) ?? null,
   createReview: (month: string, refresh: boolean) =>
     post<MonthReview>(`/api/reviews/${month}${refresh ? '?refresh=true' : ''}`),
   latestPlan: () => request<BudgetPlan | undefined>('/api/plans/latest'),
