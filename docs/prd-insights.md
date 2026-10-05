@@ -69,7 +69,7 @@ ne kadar kısılacağını ve aylık bütçeyi önerir. **Kullanıcı onaylamada
 
 | Metot | Yol | Açıklama |
 | --- | --- | --- |
-| `GET` | `/api/reviews/{yyyy-MM}` | Ayın değerlendirmesi (yoksa `404`) |
+| `GET` | `/api/reviews/{yyyy-MM}` | Ayın değerlendirmesi (yoksa `204`) |
 | `POST` | `/api/reviews/{yyyy-MM}` | Varsa döner, yoksa yazar; `?refresh=true` yeniden yazar |
 | `GET` | `/api/plans/latest` | Defterin son planı (yoksa `204`) |
 | `POST` | `/api/plans` | Plan iste: `goalAmount`, `months` (1-24), `purpose` (opsiyonel, en fazla 100) |

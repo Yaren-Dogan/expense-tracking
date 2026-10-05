@@ -34,6 +34,13 @@ Her harcama ve bütçe bir deftere aittir (`LedgerId`). Kişisel defterin kimli�
 hanenin kimliğidir. Kullanıcının **aktif defteri**: bir hanedeyse hane defteri, değilse kişisel defteri. Tüm okuma ve yazmalar
 aktif deftere göre filtrelenir; `UserId` sadece harcamayı kimin girdiğini gösterir.
 
+**Defter seçici:** Hanedeki bir kullanıcı haneden ayrılmadan kişisel defterine geçebilir. Üst çubukta
+"Kişisel | Hane adı" seçicisi vardır; seçim cihaz başına hatırlanır (telefon kişisel, bilgisayar hane defterinde kalabilir).
+İstemci kişisel defteri `X-Ledger: personal` header'ıyla ister. Kişisel defterin kimliği kullanıcının kendi kimliği
+olduğu için bu header başkasının verisine erişim yolu açmaz; hane defteri her zaman üyelikten belirlenir. Bilinmeyen değer
+yok sayılır. `GET /api/account/me` aktif defteri `ledger: "household" | "personal"` olarak döner. Kişisel defterde görevler
+sadece kişinin kendisine verilebilir; hane işlemleri (ayrılma, üye çıkarma) hangi defter açık olursa olsun haneye uygulanır.
+
 Bu model sayesinde:
 
 - Haneye katılınca eski kişisel harcamalar **kişisel kalır**; hane defteri sıfırdan başlar.

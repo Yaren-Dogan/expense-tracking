@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.8",
+    "date": "2026-10-05",
+    "title": "Kişisel ↔ hane geçişi ve görev düzeltmeleri",
+    "items": [
+      "Defter seçici: hanedeyken haneden ayrılmadan kişisel defterine geçebilirsin; seçim cihazda hatırlanır, harcama ekle kartı hangi deftere ekleneceğini gösterir.",
+      "Görev düzeltmesi: görevi veren kişi \"Ödendi\" dese de görev ve ödeme görevi alanın adına kalır; listede \"Anıl · Yaren işaretledi\" yazar.",
+      "Tamamlanmış görevler silinebilir (görevi veren, kurucu ve görevi alan); görevden gelen harcamayı görevi alan silebilir.",
+      "Ay değerlendirmesi bildirimleri kişisel ve hane değerlendirmesini ayırt eder.",
+      "Defter seçici ve görev kuralları için 20 yeni test (tester ajanıyla uç durumlar dahil)."
+    ]
+  },
+  {
     "version": "1.7",
     "date": "2026-10-05",
     "title": "Ajanlar bölümü",

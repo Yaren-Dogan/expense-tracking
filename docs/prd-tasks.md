@@ -13,7 +13,8 @@ Görevi alan kişiye bildirim gider, son gün yaklaşınca ve geçince hatırlat
 | Görev sadece defterdeki birine verilebilir (hane üyeleri ya da kendin) | Hane dışına iş/veri sızmasın (`400`) |
 | Her üye görev verebilir | Ortak ev yönetimi |
 | Tamamlayabilen: görevi alan ve görevi veren | Başkası adına yanlışlıkla tamamlanmasın (`403`) |
-| Silebilen: görevi veren ve hane kurucusu | Kurucu sahipsiz görevleri temizleyebilsin (`403`) |
+| Silebilen: görevi veren ve hane kurucusu; tamamlanmış görevi ayrıca görevi alan | Kurucu sahipsiz görevleri temizleyebilsin, herkes kendi bitmiş görevini listeden kaldırabilsin (`403`) |
+| Ödeme, görevi alanın harcaması olarak kaydedilir (görevi veren işaretlese bile) | Fatura onun işiydi: harcama onun adıyla görünür ve onu silebilir; liste "Anıl · Yaren işaretledi" gösterir |
 | Görev tek seferlik ya da aylık tekrarlı | Faturalar her ay gelir |
 | Aylık görev tamamlanınca gelecek ayın görevi aynı gün açılır; 31'i kısa ayda ayın son gününe çekilir, sonraki ay 31'e döner | Sabit ödeme günü |
 | Aylık görevin açık olanı silinirse seri biter | Sonraki ay sadece tamamlanınca açılır |

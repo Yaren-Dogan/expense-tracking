@@ -171,6 +171,11 @@ mi, fırtına mı geliyor?</p>
     </ol>
     <p class="note">Katılınca eski kişisel harcamaların sende kalır, hanede görünmez. Haneden ayrılınca kişisel defterine
     dönersin; hane harcamaları hanede kalır.</p>
+    <p><b>Kişisel ↔ hane geçişi:</b> Hanedeyken üst çubukta <b>Kişisel | Hane adı</b> seçicisi çıkar. Haneden ayrılmadan kişisel
+    defterine geçersin: kendi bütçen, kendi harcamaların, kendi görevlerin. Harcama ekle kartının köşesinde hangi deftere
+    ekleneceği yazar ("Kişisel defterine eklenir"). Kişisel defterini hane üyeleri görmez. Seçim bu cihazda hatırlanır;
+    hane ayarları (davet kodu, üyeler, ayrılma) seçicinin yanındaki ev simgesindedir.</p>
+    <img class="crop small" src="img/ledger-switch.png" alt="Defter seçici">
   </div>
 </div>
 <div class="split">
@@ -199,7 +204,8 @@ mi, fırtına mı geliyor?</p>
       <li><b>Her ay tekrarla</b> açıksa, görev tamamlanınca gelecek ayın görevi aynı gün kendiliğinden açılır
         (31'i kısa aylarda ayın son gününe çekilir).</li>
       <li>Sağdaki etiket kalan süreyi gösterir: <span class="due soon">Yarın</span> <span class="due late">1 gün gecikti</span>.</li>
-      <li>Görevi <b>alan</b> ve <b>veren</b> tamamlayabilir; <b>veren</b> ve <b>hane kurucusu</b> silebilir.</li>
+      <li>Görevi <b>alan</b> ve <b>veren</b> tamamlayabilir; <b>veren</b> ve <b>hane kurucusu</b> silebilir. Tamamlanmış görevi
+        <b>alan</b> da listeden silebilir.</li>
       <li>Hanesi olmayan kullanıcı da görevleri kişisel hatırlatıcı olarak kullanabilir.</li>
       <li>Haneden ayrılan üyenin açık görevleri kurucuya geçer.</li>
     </ul>
@@ -210,6 +216,8 @@ mi, fırtına mı geliyor?</p>
   <div>
     <p><b>Ödendi:</b> düğmeye basınca tutar sorulur. Tutarı yazarsan ödeme, görevin kategorisinde (varsayılan Fatura)
     hane harcamalarına eklenir ve bütçe havası güncellenir. Tutarı boş bırakırsan görev sadece tamamlanır.</p>
+    <p>Görev Anıl'ınsa ve "Ödendi"yi görevi veren Yaren işaretlediyse görev yine Anıl'ın kalır: harcama <b>Anıl'ın adıyla</b>
+    kaydedilir (Anıl silebilir), tamamlananlar listesinde "Anıl · Yaren işaretledi" yazar ve Anıl'a bildirim gider.</p>
     <p>Tamamlanan görevler kartın altındaki <b>Tamamlananlar</b> listesinde, kimin ödediği ve tutarıyla görünür.</p>
   </div>
 </div>
@@ -417,6 +425,9 @@ Tüm okuma ve yazmalar aktif deftere göre filtrelenir; <code>user_id</code> sad
 </svg>
 <figcaption>Haneye katılmak ya da ayrılmak veri kopyalamaz; sadece hangi defterin okunup yazıldığı değişir.</figcaption>
 </figure>
+<p>Hanedeki kullanıcı istediğinde kişisel defterine geçebilir: istemci <code>X-Ledger: personal</code> header'ı gönderir,
+<code>LedgerMiddleware</code> aktif defteri kullanıcının kendi kimliği yapar. Hane defteri her zaman üyelikten belirlenir, header'dan
+asla alınmaz; bu yüzden geçiş başka birinin verisine yol açamaz.</p>
 <p>Bu tasarım sayesinde "katılınca eski harcamalar kişisel kalsın, ayrılınca hane harcamaları hanede kalsın" kuralı ek tablo ya da
 kopyalama olmadan sağlanır. İzolasyon iki katmanlıdır: her sorguda açık <code>LedgerId</code> koşulu ve EF Core'un global query
 filter'ı (unutulan koşula karşı ikinci savunma).</p>
@@ -471,7 +482,7 @@ aynı eşiklerle uygulanır. Geçmiş bir ay son gününden bakıldığı için 
   <tr><td>Oturum anahtarları</td><td>Cookie'leri şifreleyen anahtarlar veritabanında (<code>data_protection_keys</code>); güncellemeden sonra kimsenin oturumu kapanmaz.</td></tr>
   <tr><td>Kullanıcı keşfi</td><td>Bilinmeyen e-posta ve yanlış şifre aynı cevabı alır; kayıtlı adresler bulunamaz.</td></tr>
   <tr><td>Varsayılan kapalı</td><td>Her uç oturum ister (fallback policy). Açık olanlar sadece kayıt, giriş ve health.</td></tr>
-  <tr><td>Veri izolasyonu</td><td>Aktif deftere göre açık filtre + global query filter. Başka hanenin kaydına erişim <code>404</code>.</td></tr>
+  <tr><td>Veri izolasyonu</td><td>Aktif deftere göre açık filtre + global query filter. Başka hanenin kaydına erişim <code>404</code>. Defter seçici (<code>X-Ledger: personal</code>) sadece kullanıcının kendi kişisel defterini açabilir; hane defteri üyelikten gelir.</td></tr>
   <tr><td>Yetki</td><td>Başkasının harcamasını silmek, görevini tamamlamak <code>403</code>. Kurucu işlemleri sadece kurucu.</td></tr>
   <tr><td>Veri sahiplenme</td><td>Eski cihaz verisi taşınırken kayıtlı bir kullanıcının ya da hanenin kimliği gönderilirse reddedilir.</td></tr>
   <tr><td>Davet kodu</td><td>Karışan karakterler olmadan 8 karakter (~10¹² olasılık), kriptografik rastgele; kurucu yenileyebilir.</td></tr>
@@ -825,7 +836,8 @@ olarak döner; doğrulama hatalarında alan bazlı <code>errors</code> vardır. 
   <tr><td>POST</td><td><code>/api/account/register</code></td><td>Kayıt + giriş (açık uç). <code>deviceUserId</code> ile eski cihaz verisi taşınır</td></tr>
   <tr><td>POST</td><td><code>/api/account/login</code></td><td>Giriş (açık uç)</td></tr>
   <tr><td>POST</td><td><code>/api/account/logout</code></td><td>Çıkış</td></tr>
-  <tr><td>GET</td><td><code>/api/account/me</code></td><td>Oturumdaki kullanıcı ve hanesi</td></tr>
+  <tr><td>GET</td><td><code>/api/account/me</code></td><td>Oturumdaki kullanıcı, hanesi ve aktif defter (<code>ledger</code>)</td></tr>
+  <tr><td colspan="3" class="muted">Tüm uçlar <code>X-Ledger: personal</code> header'ıyla hanedeki kullanıcının kişisel defterinde çalışır.</td></tr>
   <tr class="grp"><td colspan="3">Harcama, bütçe, hava</td></tr>
   <tr><td>GET</td><td><code>/api/expenses?month=2026-10</code></td><td>Ayın harcamaları (kimin girdiğiyle)</td></tr>
   <tr><td>POST</td><td><code>/api/expenses</code></td><td>Harcama ekle; <code>Idempotency-Key</code> header'ı opsiyonel (<code>201</code>, tekrar <code>200</code>)</td></tr>
@@ -851,7 +863,7 @@ olarak döner; doğrulama hatalarında alan bazlı <code>errors</code> vardır. 
   <tr><td>POST</td><td><code>/api/expenses/parse</code></td><td>Cümleden harcama önerisi (kaydetmez)</td></tr>
   <tr><td>GET</td><td><code>/api/expenses/search?q=kahve</code></td><td>Anlamsal arama</td></tr>
   <tr><td>POST</td><td><code>/api/assistant/chat</code></td><td>Bütçe asistanı (sohbet geçmişi istemcide, en fazla 20 mesaj)</td></tr>
-  <tr><td>GET</td><td><code>/api/reviews/{yyyy-MM}</code></td><td>Ayın değerlendirmesi (yoksa <code>404</code>)</td></tr>
+  <tr><td>GET</td><td><code>/api/reviews/{yyyy-MM}</code></td><td>Ayın değerlendirmesi (yoksa <code>204</code>)</td></tr>
   <tr><td>POST</td><td><code>/api/reviews/{yyyy-MM}</code></td><td>Değerlendirmeyi yaz ya da getir; <code>?refresh=true</code> yeniden yazar</td></tr>
   <tr><td>GET</td><td><code>/api/plans/latest</code></td><td>Son birikim planı (yoksa <code>204</code>)</td></tr>
   <tr><td>POST</td><td><code>/api/plans</code></td><td>Plan iste: <code>goalAmount</code>, <code>months</code>, <code>purpose</code></td></tr>

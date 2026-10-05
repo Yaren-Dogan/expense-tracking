@@ -41,6 +41,8 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 - Durum değişiklikleri entity metodlarıyla (`Expense.Create`, `Budget.ChangeAmount`).
 - Her sorgu aktif deftere göre filtrelenir: global query filter + sorguda açık `LedgerId` koşulu. `LedgerId` hanedeyse
   hanenin, değilse kullanıcının kimliğidir (`IUserContext.LedgerId`); `UserId` sadece kaydı kimin girdiğini gösterir.
+  Hanedeki kullanıcı `X-Ledger: personal` ile kişisel defterinde çalışabilir; "kullanıcının hanesi" ile "aktif defter"i
+  karıştırma (hane işlemleri üyelikten, veri işlemleri aktif defterden).
 - Her uç oturum ister (fallback policy). `[AllowAnonymous]` sadece kayıt, giriş ve health için.
 - Yetki sunucuda kontrol edilir: başkasının kaydına işlem `ForbiddenException` (403), yok `NotFoundException` (404),
   çakışma `ConflictException` (409).
