@@ -17,9 +17,10 @@ namespace ExpenseTracker.Api.Controllers;
 [Route("api")]
 public sealed class InsightsController(ISender mediator) : ControllerBase
 {
+    /// <summary>No review yet is a normal answer (the screen asks on every load), so it is 204 rather than an error.</summary>
     [HttpGet("reviews/{month}")]
     public async Task<ActionResult<MonthReviewDto>> GetReview(string month, CancellationToken ct) =>
-        await mediator.Send(new GetMonthReviewQuery(month), ct) is { } review ? Ok(review) : NotFound();
+        await mediator.Send(new GetMonthReviewQuery(month), ct) is { } review ? Ok(review) : NoContent();
 
     /// <summary>Returns the existing review, or writes one; <c>refresh=true</c> rewrites it.</summary>
     [EnableRateLimiting(RateLimitPolicies.Ai)]

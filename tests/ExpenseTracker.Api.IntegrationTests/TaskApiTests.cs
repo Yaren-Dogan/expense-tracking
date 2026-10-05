@@ -146,6 +146,41 @@ public class TaskApiTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task When_the_giver_ticks_off_a_task_the_payment_stays_with_the_assignee()
+    {
+        var f = await Doganlar();
+        var task = await CreateTask(f.Yaren, "Market alışverişi", f.AhmetId, "2026-10-05");
+
+        var result = await (await f.Yaren.PostAsJsonAsync($"/api/tasks/{task.Id}/complete", new { amount = 5000 })).Read<CompleteTaskResult>();
+
+        result.Completed.Should().BeEquivalentTo(new { AssigneeName = "Ahmet", CompletedByName = "Yaren" }, "the task stays Ahmet's");
+        var expense = (await f.Ahmet.GetFromJsonAsync<List<ExpenseDto>>("/api/expenses?month=2026-09", TestClient.Json))!.Single();
+        expense.CreatedBy.Should().Be(f.AhmetId, "it was Ahmet's bill");
+        (await f.Yaren.DeleteAsync($"/api/expenses/{expense.Id}")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await f.Ahmet.DeleteAsync($"/api/expenses/{expense.Id}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await Notifications(f.Ahmet))!.Items.Should().Contain(n => n.Kind == NotificationKind.TaskCompleted && n.Message.StartsWith("Yaren tamamladı"));
+    }
+
+    [Fact]
+    public async Task The_assignee_can_clear_a_finished_task_but_not_an_open_one()
+    {
+        var f = await Doganlar();
+        var can = await factory.ForNewUserAsync("Can");
+        await can.PostAsJsonAsync("/api/households/join", new { code = f.Household.InviteCode });
+        var open = await CreateTask(f.Yaren, "Açık görev", f.AhmetId, "2026-10-05");
+        var done = await CreateTask(f.Yaren, "Biten görev", f.AhmetId, "2026-10-05");
+        (await f.Ahmet.PostAsync($"/api/tasks/{done.Id}/complete", null)).EnsureSuccessStatusCode();
+
+        var list = await Tasks(f.Ahmet);
+        list!.Open.Single(t => t.Id == open.Id).CanDelete.Should().BeFalse();
+        list.Done.Single(t => t.Id == done.Id).CanDelete.Should().BeTrue();
+
+        (await f.Ahmet.DeleteAsync($"/api/tasks/{open.Id}")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await can.DeleteAsync($"/api/tasks/{done.Id}")).StatusCode.Should().Be(HttpStatusCode.Forbidden, "Can neither gave nor did it");
+        (await f.Ahmet.DeleteAsync($"/api/tasks/{done.Id}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
     public async Task Reminders_come_once_when_due_soon_and_once_when_overdue()
     {
         var f = await Doganlar();

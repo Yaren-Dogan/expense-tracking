@@ -114,7 +114,7 @@ public sealed class InsightsApiTests : IDisposable
 
         _factory.Model.Fail(new HttpRequestException("down"));
         (await yaren.PostAsync("/api/reviews/2026-08", null)).EnsureSuccessStatusCode();
-        (await outsider.GetAsync("/api/reviews/2026-08")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await outsider.GetAsync("/api/reviews/2026-08")).StatusCode.Should().Be(HttpStatusCode.NoContent, "the outsider's own ledger has no review");
         _factory.Model.Requests.Should().HaveCount(1, "invalid requests never reach the model");
     }
 
@@ -134,7 +134,7 @@ public sealed class InsightsApiTests : IDisposable
         {
             var inbox = await member.GetFromJsonAsync<NotificationListDto>("/api/notifications", TestClient.Json);
             inbox!.Items.Should().ContainSingle(n => n.Kind == NotificationKind.MonthReviewReady)
-                .Which.Message.Should().Be($"Ağustos 2026 değerlendirmen hazır: {review.Headline}");
+                .Which.Message.Should().Be($"Doğan ailesi · Ağustos 2026 değerlendirmesi hazır: {review.Headline}");
         }
     }
 

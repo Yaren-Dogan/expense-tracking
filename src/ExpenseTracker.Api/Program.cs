@@ -95,7 +95,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
     .WithOrigins(allowedOrigins)
     .AllowAnyMethod()
     .AllowCredentials()
-    .WithHeaders("Content-Type", "Idempotency-Key")));
+    .WithHeaders("Content-Type", "Idempotency-Key", LedgerMiddleware.HeaderName)));
 
 var app = builder.Build();
 

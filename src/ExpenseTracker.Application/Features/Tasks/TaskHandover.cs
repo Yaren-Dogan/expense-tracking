@@ -21,8 +21,9 @@ internal static class TaskHandover
         if (owner is null)
             return; // The last member left; the household's tasks go with it.
 
-        // The caller is a member of this household, so its id is their current ledger and the ledger filter matches.
-        var tasks = await db.Tasks
+        // The caller may be looking at their personal ledger right now, so the ledger filter is bypassed and the
+        // household's ledger is named explicitly.
+        var tasks = await db.Tasks.IgnoreQueryFilters()
             .Where(t => t.LedgerId == household.Id && t.AssigneeId == leaverId && t.CompletedAt == null)
             .ToListAsync(ct);
         if (tasks.Count == 0)

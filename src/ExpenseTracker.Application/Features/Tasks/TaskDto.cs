@@ -15,6 +15,7 @@ public sealed record TaskDto(
     DateOnly DueOn,
     TaskRecurrence Recurrence,
     DateTimeOffset? CompletedAt,
+    Guid? CompletedById,
     string? CompletedByName,
     decimal? PaidAmount,
     bool CanComplete,

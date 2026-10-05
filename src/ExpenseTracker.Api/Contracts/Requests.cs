@@ -17,7 +17,8 @@ public sealed record RegisterRequest(string Email, string Password, string Displ
 
 public sealed record LoginRequest(string Email, string Password, Guid? DeviceUserId);
 
-public sealed record MeResponse(Guid Id, string Email, string DisplayName, HouseholdSummary? Household, int ClaimedExpenses = 0);
+/// <param name="Ledger">"household" or "personal": the ledger this request works in (see <c>X-Ledger</c>).</param>
+public sealed record MeResponse(Guid Id, string Email, string DisplayName, HouseholdSummary? Household, string Ledger, int ClaimedExpenses = 0);
 
 public sealed record HouseholdSummary(Guid Id, string Name);
 

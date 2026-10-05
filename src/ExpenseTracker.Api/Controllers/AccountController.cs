@@ -1,4 +1,5 @@
 using ExpenseTracker.Api.Contracts;
+using ExpenseTracker.Api.Middleware;
 using ExpenseTracker.Application.Features.Account.Commands.ClaimDeviceData;
 using ExpenseTracker.Application.Features.Households.Queries.GetMyHousehold;
 using ExpenseTracker.Infrastructure.Identity;
@@ -91,8 +92,9 @@ public sealed class AccountController(
     private async Task<MeResponse> MeAsync(AppUser user, int claimed, CancellationToken ct)
     {
         var household = await mediator.Send(new GetMyHouseholdQuery(), ct);
+        var ledger = household is not null && !LedgerMiddleware.WantsPersonal(HttpContext) ? LedgerMiddleware.Household : LedgerMiddleware.Personal;
         return new MeResponse(user.Id, user.Email!, user.DisplayName,
-            household is null ? null : new HouseholdSummary(household.Id, household.Name), claimed);
+            household is null ? null : new HouseholdSummary(household.Id, household.Name), ledger, claimed);
     }
 
     // Same answer for unknown e-mail and wrong password, so the endpoint cannot be used to find registered addresses.

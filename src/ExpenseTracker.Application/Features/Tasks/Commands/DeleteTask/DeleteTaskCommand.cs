@@ -27,7 +27,7 @@ public sealed class DeleteTaskCommandHandler(
 
         var people = await LedgerPeople.LoadAsync(db, user, users, cancellationToken);
         if (!people.CanDelete(task, user.UserId))
-            throw new ForbiddenException("Görevi sadece veren kişi ya da hane kurucusu silebilir.");
+            throw new ForbiddenException("Açık bir görevi sadece veren kişi ya da hane kurucusu silebilir.");
 
         db.Tasks.Remove(task);
         await db.SaveChangesAsync(cancellationToken);

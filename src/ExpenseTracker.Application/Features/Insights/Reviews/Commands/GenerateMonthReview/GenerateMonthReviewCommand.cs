@@ -70,7 +70,12 @@ public sealed class GenerateMonthReviewCommandHandler(
 
         if (isNew && request.Notify)
         {
-            var message = $"{TurkishText.Month(month)} değerlendirmen hazır: {review.Headline}";
+            // A household member gets one review for the household and one for their personal ledger: say which is which.
+            var householdName = await db.Households.AsNoTracking().Where(h => h.Id == ledgerId).Select(h => h.Name)
+                .SingleOrDefaultAsync(cancellationToken);
+            var message = householdName is null
+                ? $"Kişisel {TurkishText.Month(month)} değerlendirmen hazır: {review.Headline}"
+                : $"{householdName} · {TurkishText.Month(month)} değerlendirmesi hazır: {review.Headline}";
             foreach (var member in await LedgerMembers.ResolveAsync(db, users, ledgerId, cancellationToken))
                 db.Notifications.Add(Notification.Create(member, NotificationKind.MonthReviewReady, review.Id, message));
         }

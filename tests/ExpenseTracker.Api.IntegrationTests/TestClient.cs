@@ -30,6 +30,20 @@ public static class TestClient
 
     public static string Email(this HttpClient client) => Emails.TryGetValue(client, out var email) ? email : throw new InvalidOperationException();
 
+    /// <summary>What the ledger switcher does: every request from this client works in the user's personal ledger.</summary>
+    public static HttpClient UsePersonalLedger(this HttpClient client)
+    {
+        client.DefaultRequestHeaders.Remove("X-Ledger");
+        client.DefaultRequestHeaders.Add("X-Ledger", "personal");
+        return client;
+    }
+
+    public static HttpClient UseDefaultLedger(this HttpClient client)
+    {
+        client.DefaultRequestHeaders.Remove("X-Ledger");
+        return client;
+    }
+
     public static async Task<T> Read<T>(this HttpResponseMessage response) =>
         (await response.Content.ReadFromJsonAsync<T>(Json))!;
 

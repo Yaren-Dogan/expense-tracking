@@ -49,8 +49,10 @@ public sealed class CompleteTaskCommandHandler(
         if (!task.CanBeCompletedBy(userId))
             throw new ForbiddenException("Görevi sadece atanan kişi ya da görevi veren tamamlayabilir.");
 
+        // The bill was the assignee's job, so the payment is their expense even when the person who gave the task ticks
+        // it off for them: it shows under their name and they can delete it.
         var payment = request.Amount is { } amount
-            ? Expense.Create(userId, ledgerId, amount, task.Category, task.Title, clock.Today, idempotencyKey: null)
+            ? Expense.Create(task.AssigneeId, ledgerId, amount, task.Category, task.Title, clock.Today, idempotencyKey: null)
             : null;
         if (payment is not null)
             db.Expenses.Add(payment);
