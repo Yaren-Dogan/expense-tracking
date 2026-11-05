@@ -120,6 +120,9 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // The pre-insights enum has no such kinds; left behind, they would break reading notifications after a rollback.
+            migrationBuilder.Sql("DELETE FROM notifications WHERE kind IN ('MonthReviewReady', 'BudgetPlanApplied');");
+
             migrationBuilder.DropTable(
                 name: "budget_plans");
 
