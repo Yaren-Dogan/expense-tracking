@@ -1,0 +1,56 @@
+# Weekly dependency updates, grouped so each ecosystem opens at most one PR a week for minor/patch bumps.
+# Every PR runs the CI workflow; majors come as separate PRs because they usually need code changes.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Istanbul
+    groups:
+      nuget-minor:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Istanbul
+    groups:
+      web-minor:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  # The guide's PDF pipeline; playwright must stay in step with the playwright Docker image used to build it.
+  - package-ecosystem: npm
+    directory: "/docs/guide"
+    schedule:
+      interval: monthly
+    groups:
+      guide:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directories: ["/", "/web"]
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+
+  - package-ecosystem: docker-compose
+    directory: "/"
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
