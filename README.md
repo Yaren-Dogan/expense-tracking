@@ -1,5 +1,7 @@
 # Bütçe Hava Durumu
 
+[![CI](https://github.com/Yaren-Dogan/expense-tracking/actions/workflows/ci.yml/badge.svg)](https://github.com/Yaren-Dogan/expense-tracking/actions/workflows/ci.yml)
+
 Harcamalarını takip et, bütçenin durumunu **hava durumu** gibi gör.
 Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anlaşılır.
 
@@ -111,6 +113,10 @@ dotnet build -warnaserror
 dotnet test                       # Domain + validator + gerçek Postgres (pgvector) üzerinde API testleri
 cd web && npm run lint && npm run build
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) her push'ta, her PR'da ve her gün aynı kontrolleri çalıştırır: build, migration
+snapshot kontrolü, tüm testler, frontend lint ve build. Testler sabit bir tarihte çalıştığı için günlük çalıştırma kod
+değişmeden ortaya çıkan kırılmaları da yakalar.
 
 Docker Hub limitine takılırsan entegrasyon testleri için farklı bir imaj verebilirsin:
 `TEST_POSTGRES_IMAGE=<pgvector imajı> dotnet test`. Testler gerçek model kullanmaz;
