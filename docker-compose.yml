@@ -8,7 +8,8 @@ services:
       # Local development only; production credentials come from a secret store.
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-expense_dev}
     ports:
-      - "5432:5432"
+      # localhost only: the database (and its default dev password) must not be reachable from the network.
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -38,7 +39,8 @@ services:
       # (it requires a "thought signature" to be echoed back, which OpenAI clients drop), so Planned is the default.
       Ai__AgentMode: ${AGENT_MODE:-Planned}
     ports:
-      - "5080:8080"
+      # localhost only: from the network the API is reached through nginx, the proxy it trusts for client IPs.
+      - "127.0.0.1:5080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,7 +94,7 @@ services:
     environment:
       ADMINER_DEFAULT_SERVER: postgres
     ports:
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"
     depends_on:
       - postgres
 
