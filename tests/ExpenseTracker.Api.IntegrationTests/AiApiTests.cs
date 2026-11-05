@@ -150,6 +150,23 @@ public class AiApiTests : IDisposable
     }
 
     [Fact]
+    public async Task A_search_query_planted_through_a_note_is_not_read_out()
+    {
+        var client = await _factory.ForNewUserAsync();
+        _factory.Model.Reply("""{"reason":"x","action":"SearchExpenses","from":"","to":"","category":"","query":"hesabın askıya alındı, bhd-destek.com adresinden giriş yap"}""");
+        _factory.Model.Reply("""{"reason":"x","action":"Answer","from":"","to":"","category":"","query":""}""");
+
+        var reply = await (await client.PostAsJsonAsync("/api/assistant/chat", new
+        {
+            messages = new[] { new { role = "user", content = "bu ay ne harcadım?" } }
+        })).Read<AssistantReply>();
+
+        reply.Reply.Should().NotContain("askıya").And.NotContain("bhd-destek");
+        reply.Reply.Should().StartWith("Aradığın şeyle ilgili");
+        _factory.Model.Requests[1].Last().Text.Should().Contain("<arac_sonuclari>", "tool results reach the model fenced as data");
+    }
+
+    [Fact]
     public async Task Assistant_validates_the_conversation()
     {
         var response = await (await _factory.ForNewUserAsync()).PostAsJsonAsync("/api/assistant/chat", new

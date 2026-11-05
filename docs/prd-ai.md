@@ -94,6 +94,8 @@ Tasarım kararları:
 - **Döngü sınırı.** Bir istekte en fazla 5 araç turu (`MaxToolIterations`); aynı araç aynı parametreyle tekrar istenirse döngü biter.
 - **Araç hataları metin döner.** Geçersiz tarih aralığında exception yerine açıklama döner; model düzeltip tekrar dener.
 - **Prompt injection savunması.** Sistem prompt'u harcama notlarını talimat değil veri olarak ele almasını söyler;
+  planlayıcıya giden araç sonuçları `<arac_sonuclari>` etiketiyle verilir. Modelin seçtiği arama metni kullanıcıya okunan
+  özete sadece kısa ve rakamsız/bağlantısızsa girer;
   araçlar zaten salt okunur ve kullanıcıya kapsamlı olduğu için etki alanı sınırlıdır.
 - **Şeffaflık.** Cevapla birlikte kullanılan araçların adları döner; arayüz bunları gösterir.
 - **Sunucu durumsuz.** Sohbet geçmişi istemcide tutulur, her istekte en fazla 20 mesaj gönderilir.

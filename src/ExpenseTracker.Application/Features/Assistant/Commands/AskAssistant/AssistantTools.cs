@@ -2,6 +2,7 @@ using System.ComponentModel;
 using ExpenseTracker.Application.Common.Ai;
 using ExpenseTracker.Application.Common.Exceptions;
 using ExpenseTracker.Application.Common.Interfaces;
+using ExpenseTracker.Application.Features.Insights;
 using ExpenseTracker.Application.Features.Weather.Queries.GetWeather;
 using ExpenseTracker.Domain.Enums;
 using ExpenseTracker.Domain.Weather;
@@ -28,6 +29,7 @@ public sealed class AssistantTools(
     private const int MaxRangeDays = 366;
     private const int MaxListed = 20;
     private const int MaxSearchResults = 15;
+    private const int MaxEchoedQuery = 40;
 
     public IList<AITool> All() =>
     [
@@ -165,9 +167,12 @@ public sealed class AssistantTools(
         }
 
         var total = matches.Sum(m => m.Expense.Amount);
+        // The query comes from the model and the summary is read out verbatim, so a query planted through an expense note
+        // ("hesabın askıya alındı, ... adresine gir") would be spoken in the app's own voice. Only a short, plain one is echoed.
+        var subject = query.Trim().Length <= MaxEchoedQuery && ModelText.IsUsable(query) ? $"'{query.Trim()}' ile ilgili" : "Aradığın şeyle ilgili";
         var özet = matches.Count == 0
-            ? $"'{query}' ile ilgili harcama bulunamadı."
-            : $"'{query}' ile ilgili {matches.Count} harcama bulundu, toplam {Money(total)}. " +
+            ? $"{subject} harcama bulunamadı."
+            : $"{subject} {matches.Count} harcama bulundu, toplam {Money(total)}. " +
               $"Tarih aralığı {matches.Min(m => m.Expense.SpentOn):yyyy-MM-dd} – {matches.Max(m => m.Expense.SpentOn):yyyy-MM-dd}.";
         return new
         {
