@@ -49,11 +49,12 @@ public static class PlanMath
         if (maxSaving <= 0)
             return null;
 
+        // The monthly saving is rounded up to whole liras, so the check uses the rounded figure: 301 over 3 months is 101
+        // a month, which a 100,50 ceiling cannot carry even though 301 ÷ 3 = 100,33 would fit.
         var months = requestedMonths;
-        if (goal / months > maxSaving)
+        while (Math.Ceiling(goal / months) > maxSaving)
         {
-            months = (int)Math.Ceiling(goal / maxSaving);
-            if (months > maxMonths)
+            if (++months > maxMonths)
                 return null;
         }
 

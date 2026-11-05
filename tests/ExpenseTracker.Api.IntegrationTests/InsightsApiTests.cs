@@ -185,6 +185,30 @@ public sealed class InsightsApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Two_simultaneous_applies_of_one_plan_succeed_only_once()
+    {
+        // Every planned month already has a budget, so applying only updates rows: no unique index can catch the race,
+        // only the applied_at concurrency token. A personal ledger also means no notification index to lean on.
+        var me = await _factory.ForNewUserAsync();
+        await Spend(me, 3000, "Market", "Migros", "2026-07-10");
+        await Spend(me, 2000, "Food", "Restoran", "2026-08-20");
+        foreach (var month in new[] { "2026-10", "2026-11" })
+            (await me.PutAsJsonAsync($"/api/budgets/{month}", new { amount = 9999 })).EnsureSuccessStatusCode();
+
+        _factory.Model.Fail(new HttpRequestException("down"));
+        var plan = await (await me.PostAsJsonAsync("/api/plans", new { goalAmount = 400, months = 2 })).Read<BudgetPlanDto>();
+
+        var responses = await Task.WhenAll(
+            me.PostAsync($"/api/plans/{plan.Id}/apply", null),
+            me.PostAsync($"/api/plans/{plan.Id}/apply", null));
+
+        responses.Select(r => r.StatusCode).Should().BeEquivalentTo(new[] { HttpStatusCode.OK, HttpStatusCode.Conflict });
+        // Baseline (3.000 + 2.000) / 2 months = 2.500; 400 in 2 months = 200 a month; 2.500 − 200 = 2.300.
+        foreach (var month in new[] { "2026-10", "2026-11" })
+            (await me.GetFromJsonAsync<BudgetDto>($"/api/budgets/{month}", TestClient.Json))!.Amount.Should().Be(2300);
+    }
+
+    [Fact]
     public async Task Without_a_model_the_rules_plan_and_too_big_goals_are_stretched_or_refused()
     {
         var (yaren, _) = await CoupleWithHistory();

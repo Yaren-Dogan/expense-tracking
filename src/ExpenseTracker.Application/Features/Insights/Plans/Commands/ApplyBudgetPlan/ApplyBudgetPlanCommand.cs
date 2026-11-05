@@ -63,6 +63,12 @@ public sealed class ApplyBudgetPlanCommandHandler(
             // Someone set one of these months' budget at the same moment; nothing was written, so the user can retry.
             throw new ConflictException("Bu aylardan birinin bütçesi az önce değişti. Planı tekrar uygula.");
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another member applied this plan between our read and our write (applied_at is a concurrency token);
+            // the whole save was rolled back, so their apply is the only one.
+            throw new ConflictException("Bu plan zaten uygulandı.");
+        }
 
         logger.BudgetPlanApplied(plan.Id, ledgerId, months.Count);
         return await BudgetPlanDto.FromAsync(plan, users, cancellationToken);
