@@ -123,4 +123,33 @@ public class ExpensesApiTests(ApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task The_month_exports_as_a_csv_excel_opens_with_turkish_characters()
+    {
+        var client = await factory.ForNewUserAsync("Yaren");
+        var outsider = await factory.ForNewUserAsync();
+        (await client.PostExpense(new { amount = 1234.5m, category = "Market", note = "Migros; haftalık", spentOn = "2026-09-12" })).EnsureSuccessStatusCode();
+        (await client.PostExpense(new { amount = 85m, category = "Food", note = "=HYPERLINK(\"http://x\")", spentOn = "2026-09-03" })).EnsureSuccessStatusCode();
+        (await client.PostExpense(new { amount = 40m, category = "Transport", note = "ağustos", spentOn = "2026-08-31" })).EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync("/api/expenses/export?month=2026-09");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType!.MediaType.Should().Be("text/csv");
+        response.Content.Headers.ContentDisposition!.FileName.Should().Be("harcamalar-2026-09.csv");
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        bytes.Take(3).Should().Equal([0xEF, 0xBB, 0xBF], "Excel needs the BOM to read UTF-8");
+        var lines = System.Text.Encoding.UTF8.GetString(bytes[3..]).Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+
+        lines.Should().Equal(
+            "Tarih;Kategori;Tutar (TL);Not;Giren",
+            "03.09.2026;Yemek;85,00;\"'=HYPERLINK(\"\"http://x\"\")\";Yaren",
+            "12.09.2026;Market;1234,50;\"Migros; haftalık\";Yaren");
+
+        var foreignBytes = await outsider.GetByteArrayAsync("/api/expenses/export?month=2026-09");
+        var foreign = System.Text.Encoding.UTF8.GetString(foreignBytes[3..]);
+        foreign.Trim().Should().Be("Tarih;Kategori;Tutar (TL);Not;Giren", "another ledger's expenses never appear");
+        (await client.GetAsync("/api/expenses/export?month=2026-13")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }

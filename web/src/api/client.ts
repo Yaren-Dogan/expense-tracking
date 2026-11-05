@@ -72,6 +72,34 @@ async function request<T>(path: string, { authCall = false, ...init }: RequestOp
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T)
 }
 
+/**
+ * Downloads a file from the API. A plain link would not carry the X-Ledger header, so a member viewing their personal
+ * ledger would get the household's file; fetching and saving a blob keeps the same ledger as the rest of the screen.
+ */
+async function download(path: string, fallbackName: string): Promise<void> {
+  const headers = new Headers()
+  if (getLedgerChoice() === 'personal') headers.set('X-Ledger', 'personal')
+  let response: Response
+  try {
+    response = await fetch(path, { headers, credentials: 'same-origin' })
+  } catch {
+    throw new ApiError(0, 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.')
+  }
+  if (!response.ok) {
+    if (response.status === 401) onSessionExpired?.()
+    const problem = (await response.json().catch(() => ({}))) as ProblemDetails
+    throw new ApiError(response.status, problem.detail ?? problem.title ?? 'Dosya indirilemedi.', problem.errors)
+  }
+
+  const name = /filename="?([^";]+)"?/.exec(response.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = name
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 const post = <T>(path: string, body?: unknown, options: RequestOptions = {}) =>
   request<T>(path, { ...options, method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) })
 
@@ -116,6 +144,7 @@ export const api = {
   weather: (date: string) => request<Weather>(`/api/weather?date=${date}`),
 
   expenses: (month: string) => request<Expense[]>(`/api/expenses?month=${month}`),
+  exportExpenses: (month: string) => download(`/api/expenses/export?month=${month}`, `harcamalar-${month}.csv`),
 
   addExpense: (expense: NewExpense, idempotencyKey: string) =>
     request<Expense>('/api/expenses', {

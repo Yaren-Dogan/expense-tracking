@@ -13,6 +13,7 @@ Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anl
 - **Bugünün havası:** Bugünkü harcaman, günlük payınla karşılaştırılır.
 - **Gönül rahatlığıyla harcanabilir:** Hava bozulmadan bugün daha ne kadar harcayabilirsin.
 - **Son 7 günün havası** ve **ay sonu tahmini.**
+- **CSV dışa aktarma:** Ayın harcamalarını tek tıkla Excel'de açılan bir dosya olarak indir.
 - **Geçmiş aylar:** Önceki aylara gidip harcama ve bütçe girebilir, ayın nasıl kapandığını görebilirsin.
 - **Ortak hane:** Eşinle ya da ailenle aynı bütçeyi ve harcama listesini paylaş. Davet koduyla katılırken
   "Aynı haneden misiniz?" diye sorulur; herkes tüm harcamaları görür, sadece kendi girdiğini siler.
