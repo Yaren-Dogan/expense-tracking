@@ -244,6 +244,7 @@ namespace ExpenseTracker.Infrastructure.Persistence.Migrations
                         .HasComment("Hedef için alışkanlık önerisi.");
 
                     b.Property<DateTimeOffset?>("AppliedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("applied_at")
                         .HasComment("Planın uygulandığı an; boşsa sadece öneri. Uygulanınca planlanan ayların bütçesi yazılır.");

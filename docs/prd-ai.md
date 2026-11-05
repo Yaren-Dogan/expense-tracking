@@ -58,6 +58,8 @@ kayıtlarını da bulur.
 - **Indexleme arka planda yapılır** (`ExpenseEmbeddingIndexer`, varsayılan 10 sn). Harcama kaydı
   modele bağımlı değildir: Ollama kapalıyken de harcama eklenir, model açılınca indexlenir.
 - Embedding modeli değişirse eski vektörler otomatik yeniden üretilir (`model` kolonu karşılaştırılır).
+- Her arama sorguyu modele embedding'e çevirttiği için uç, diğer model uçları gibi kullanıcı başına dakikada
+  `RateLimits:AiPerMinute` istekle sınırlıdır.
 - Sonuçlar aktif deftere göre filtrelenir ve benzerlik eşiğinin altındakiler elenir. Eşik modele göre değişir: bge-m3 için 0,5,
   gemini-embedding-001 için 0,68 (Gemini alakasız kayıtlara bile 0,52–0,62 verir; ölçümler `AiOptions.EffectiveMinSimilarity`'de).
 

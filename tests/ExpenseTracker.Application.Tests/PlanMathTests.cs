@@ -39,6 +39,20 @@ public class PlanMathTests
     }
 
     [Fact]
+    public void The_rounded_up_monthly_saving_never_exceeds_what_the_flexible_categories_can_give()
+    {
+        // Market 201 → at most 100,50 a month. 301 over 3 months is 100,33, but the saving rounds up to 101: too much.
+        // 4 months: 301 ÷ 4 = 75,25 → 76, which fits.
+        var baseline = new Dictionary<ExpenseCategory, decimal> { [ExpenseCategory.Market] = 201 };
+
+        var plan = PlanMath.Compute(301, 3, 24, baseline, [])!;
+
+        plan.Months.Should().Be(4);
+        plan.MonthlySaving.Should().Be(76);
+        plan.MonthlySaving.Should().BeLessThanOrEqualTo(PlanMath.MaxMonthlySaving(baseline));
+    }
+
+    [Fact]
     public void A_goal_that_does_not_fit_is_stretched_over_more_months_or_rejected()
     {
         // Flexible total 8.000 → at most 4.000 a month.

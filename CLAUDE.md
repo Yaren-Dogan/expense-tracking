@@ -79,7 +79,7 @@ dotnet ef migrations add <Ad> -p src/ExpenseTracker.Infrastructure -s src/Expens
 
 ## Bitti tanımı
 
-1. `dotnet build -warnaserror` ve `dotnet test` yeşil.
+1. `dotnet build -warnaserror` ve `dotnet test` yeşil; PR'da GitHub Actions (`.github/workflows/ci.yml`) yeşil.
 2. `npm run build` ve `npm run lint` yeşil.
 3. `docs/standards.md` içindeki review listesi uygulanmış; uygulanmayan madde PR açıklamasında gerekçeli.
 4. PRD değiştiyse `docs/prd.md` güncel.

@@ -35,6 +35,10 @@ public sealed class BudgetPlanConfiguration : IEntityTypeConfiguration<BudgetPla
                     cuts => cuts.Aggregate(0, (hash, cut) => HashCode.Combine(hash, cut)),
                     cuts => cuts.ToList()));
 
+        // A plan is applied once. Two members pressing "apply" together both read it as not applied; with this token the
+        // second UPDATE carries "applied_at IS NULL", matches no row, and EF rejects it instead of applying twice.
+        builder.Property(p => p.AppliedAt).IsConcurrencyToken();
+
         builder.Ignore(p => p.Start);
         builder.Ignore(p => p.IsExtended);
         builder.Ignore(p => p.IsApplied);

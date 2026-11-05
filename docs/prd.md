@@ -96,7 +96,8 @@ yarışta unique ihlali yakalanıp kazanan kayıt döner. Mobilde çift dokunmay
 ## Loglama olayları
 
 `ExpenseCreated`, `ExpenseDuplicateRequest`, `ExpenseDeleted`, `BudgetSet`,
-`WeatherCalculated`, `InvalidUserHeader`. Structured (Serilog), sabit `EventId`.
+`WeatherCalculated`. Structured (Serilog), sabit `EventId`. Hesap, görev ve ajan olayları
+`ApplicationLog.cs`'te.
 
 ## Kabul kriterleri
 

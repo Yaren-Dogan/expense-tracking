@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.AI;
@@ -78,6 +80,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);
+            // The session cookie is persistent and expires 14 days after the pinned clock, but the test client's cookie
+            // container checks expiry against the real date. Once the real date passed that point every request after
+            // sign-in was 401. The cookie lives on real time; the business rules keep the pinned date.
+            services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
+                options => options.TimeProvider = TimeProvider.System);
             // Tests trigger reminders explicitly, so a background run can never race an assertion.
             Type[] schedulers = [typeof(ExpenseTracker.Infrastructure.Tasks.TaskReminderScheduler), typeof(ExpenseTracker.Infrastructure.Insights.MonthReviewScheduler)];
             foreach (var scheduler in services.Where(d => d.ServiceType == typeof(IHostedService) && schedulers.Contains(d.ImplementationType)).ToList())

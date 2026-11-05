@@ -38,7 +38,7 @@ kaydına işlem `403`, çakışma `409`.
 | Kimlik | ASP.NET Core Identity, HttpOnly + `SameSite=Strict` cookie, kilitleme, IP/kullanıcı başına rate limit |
 | Veri izolasyonu | Aktif defter (`LedgerMiddleware`) + global filter + sorguda açık `LedgerId` koşulu |
 | Idempotency | `Idempotency-Key`, `(UserId, IdempotencyKey)` unique, yarışta kazanan döner |
-| Upsert yarışı | Bütçe `(UserId, Year, Month)` unique, ihlalde yeniden okuyup günceller |
+| Upsert yarışı | Bütçe `(LedgerId, Year, Month)` unique, ihlalde yeniden okuyup günceller |
 | Zaman | `TimeProvider` + yapılandırılmış saat dilimi, istemci tarihi opsiyonel |
 | Structured logging | `LoggerMessage` + sabit `EventId`, PRD'deki olay adları |
 | Yerel ortam | docker compose + healthcheck + `service_healthy` |

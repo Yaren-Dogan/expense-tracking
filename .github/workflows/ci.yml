@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Tests pin the clock to a fixed date while some things (cookie expiry, the real calendar) still move. A daily run
+  # catches breakage that appears with no code change, the day it appears.
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (warnings are errors)
+        run: dotnet build --no-restore -warnaserror
+
+      # The model snapshot must match the EF model, or the next migration picks up unrelated changes.
+      - name: Check for model changes without a migration
+        run: |
+          dotnet tool install --global dotnet-ef --version 9.0.9
+          dotnet ef migrations has-pending-model-changes \
+            -p src/ExpenseTracker.Infrastructure -s src/ExpenseTracker.Api --no-build
+
+      # Integration tests start pgvector/pgvector:pg17 through Testcontainers; the runner provides Docker.
+      - name: Test
+        run: dotnet test --no-build --logger "trx;LogFilePrefix=results" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - name: Type check + production build
+        run: npm run build

@@ -1,5 +1,7 @@
 # Bütçe Hava Durumu
 
+[![CI](https://github.com/Yaren-Dogan/expense-tracking/actions/workflows/ci.yml/badge.svg)](https://github.com/Yaren-Dogan/expense-tracking/actions/workflows/ci.yml)
+
 Harcamalarını takip et, bütçenin durumunu **hava durumu** gibi gör.
 Bugün güneşli mi, fırtına mı geliyor? Grafik okumak yok, bir bakışta anlaşılır.
 
@@ -86,8 +88,10 @@ http://localhost:8081 adresinde şu bilgilerle giriş yap:
 | Password | `expense_dev` |
 | Database | `expense_tracker` |
 
-Tablolar: `expenses` (harcamalar), `budgets` (aylık bütçeler), `expense_embeddings` (arama vektörleri). Her kaydın `user_id` değeri,
-tarayıcıdaki `expense-tracker.user-id` (F12 → Application → Local Storage) ile eşleşir.
+Başlıca tablolar: `expenses` (harcamalar), `budgets` (aylık bütçeler), `tasks` (görevler), `notifications` (bildirimler),
+`month_reviews` ve `budget_plans` (ajan çıktıları), `expense_embeddings` (arama vektörleri). Her kayıt bir deftere aittir
+(`ledger_id`): kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Her tablo ve kolonun Türkçe açıklaması
+Adminer'da "Yorum" sütununda görünür; tam liste kılavuzun veritabanı bölümünde.
 
 ### Geliştirme
 
@@ -109,6 +113,10 @@ dotnet build -warnaserror
 dotnet test                       # Domain + validator + gerçek Postgres (pgvector) üzerinde API testleri
 cd web && npm run lint && npm run build
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) her push'ta, her PR'da ve her gün aynı kontrolleri çalıştırır: build, migration
+snapshot kontrolü, tüm testler, frontend lint ve build. Testler sabit bir tarihte çalıştığı için günlük çalıştırma kod
+değişmeden ortaya çıkan kırılmaları da yakalar.
 
 Docker Hub limitine takılırsan entegrasyon testleri için farklı bir imaj verebilirsin:
 `TEST_POSTGRES_IMAGE=<pgvector imajı> dotnet test`. Testler gerçek model kullanmaz;
@@ -132,6 +140,7 @@ göre filtrelenir. Hesaplardan önce bu tarayıcıda girilen veriler ilk kayıt/
 
 ## Claude ile çalışma
 
-`CLAUDE.md` proje kurallarını ve "bitti" tanımını içerir. `.claude/agents/` altında
-`architect`, `implementer` ve `reviewer` alt ajanları, `.claude/commands/review.md` altında
-`/review` komutu var.
+`CLAUDE.md` proje kurallarını ve "bitti" tanımını içerir. `.claude/agents/` altında yedi alt ajan var:
+`architect` (plan), `implementer` (kod + test), `tester` (`/test-plan`), `security-reviewer` (`/security-review`),
+`migration-checker` (`/check-migration`), `reviewer` (`/review`) ve `docs-keeper` (`/update-guide`).
+Önerilen sıra ve her ajanın görevi: [`docs/prd-insights.md`](docs/prd-insights.md) ve kılavuzun Ajanlar bölümü.

@@ -40,6 +40,8 @@ public sealed class ExpensesController(ISender mediator) : ControllerBase
     public async Task<ActionResult<ParsedExpenseDto>> Parse(ParseExpenseRequest request, CancellationToken ct) =>
         Ok(await mediator.Send(new ParseExpenseQuery(request.Text, request.Today), ct));
 
+    /// <summary>Embeds the query with the provider on every call, so it shares the model quota and its limit.</summary>
+    [EnableRateLimiting(RateLimitPolicies.Ai)]
     [HttpGet("search")]
     public async Task<ActionResult<IReadOnlyList<ExpenseMatch>>> Search(
         [FromQuery] string q, [FromQuery] int top = 10, CancellationToken ct = default) =>
