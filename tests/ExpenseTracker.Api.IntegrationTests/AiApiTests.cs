@@ -150,6 +150,38 @@ public class AiApiTests : IDisposable
     }
 
     [Fact]
+    public async Task A_free_text_reply_with_numbers_or_links_is_replaced_by_a_fixed_one()
+    {
+        var client = await _factory.ForNewUserAsync();
+        _factory.Model.Reply("""{"reason":"selam","action":"Answer","from":"","to":"","category":"","query":""}""");
+        _factory.Model.Reply("Merhaba! Bu ay 5.000 TL harcadın, ayrıntılar için www.ornek.com adresine bak.");
+
+        var reply = await (await client.PostAsJsonAsync("/api/assistant/chat", new
+        {
+            messages = new[] { new { role = "user", content = "Merhaba" } }
+        })).Read<AssistantReply>();
+
+        reply.ToolsUsed.Should().BeEmpty();
+        reply.Reply.Should().NotContainAny(["5.000", "www."], "with no tool results a number could only be invented");
+        reply.Reply.Should().StartWith("Merhaba! Bütçen ve harcamaların hakkında");
+    }
+
+    [Fact]
+    public async Task A_plain_free_text_reply_reaches_the_user_unchanged()
+    {
+        var client = await _factory.ForNewUserAsync();
+        _factory.Model.Reply("""{"reason":"selam","action":"Answer","from":"","to":"","category":"","query":""}""");
+        _factory.Model.Reply("Merhaba, nasıl yardımcı olabilirim?");
+
+        var reply = await (await client.PostAsJsonAsync("/api/assistant/chat", new
+        {
+            messages = new[] { new { role = "user", content = "Merhaba" } }
+        })).Read<AssistantReply>();
+
+        reply.Reply.Should().Be("Merhaba, nasıl yardımcı olabilirim?");
+    }
+
+    [Fact]
     public async Task Assistant_validates_the_conversation()
     {
         var response = await (await _factory.ForNewUserAsync()).PostAsJsonAsync("/api/assistant/chat", new

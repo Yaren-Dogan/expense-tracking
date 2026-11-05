@@ -4,6 +4,14 @@ namespace ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
 
 internal static class AssistantPrompt
 {
+    /// <summary>Used when the model's own reply to a question that needs no data carries numbers or links.</summary>
+    public const string GreetingFallback =
+        "Merhaba! Bütçen ve harcamaların hakkında soru sorabilirsin: \"Bu ay bütçem nasıl?\" ya da \"Kahveye ne kadar veriyorum?\" gibi.";
+
+    /// <summary>Used when a tool failed and the model's explanation carries numbers or links.</summary>
+    public const string ToolErrorFallback =
+        "Bu soruyu şu an cevaplayamadım. Tarih aralığını ya da aradığın şeyi biraz farklı yazmayı dener misin?";
+
     public static string System(DateOnly today) => $"""
         Senin adın Bütçe Asistanı; "Bütçe Hava Durumu" uygulamasında kullanıcının harcamaları hakkında soruları cevaplarsın.
         Kullanıcıyla Türkçe, samimi ve kısa konuş, "sen" diye hitap et.
