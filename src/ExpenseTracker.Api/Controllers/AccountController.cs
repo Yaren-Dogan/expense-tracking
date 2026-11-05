@@ -48,12 +48,15 @@ public sealed class AccountController(
     {
         var user = await userManager.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
         if (user is null)
+        {
+            // Hash anyway, so an unknown address takes as long as a wrong password and timing does not reveal accounts.
+            userManager.PasswordHasher.VerifyHashedPassword(UnknownUser, UnknownUserHash, request.Password ?? string.Empty);
             return InvalidCredentials();
+        }
 
+        // A locked account gets the same answer as a wrong password: a distinct "locked" reply would tell anyone, after
+        // five tries, that the address is registered.
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password ?? string.Empty, lockoutOnFailure: true);
-        if (result.IsLockedOut)
-            return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Account locked",
-                detail: "Çok fazla hatalı deneme yapıldı. 5 dakika sonra tekrar dene.");
         if (!result.Succeeded)
             return InvalidCredentials();
 
@@ -99,7 +102,11 @@ public sealed class AccountController(
 
     // Same answer for unknown e-mail and wrong password, so the endpoint cannot be used to find registered addresses.
     private ObjectResult InvalidCredentials() =>
-        Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials", detail: "E-posta veya şifre hatalı.");
+        Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials",
+            detail: "E-posta veya şifre hatalı. Art arda 5 hatalı denemeden sonra giriş 5 dakika kapanır.");
+
+    private static readonly AppUser UnknownUser = new();
+    private static readonly string UnknownUserHash = new PasswordHasher<AppUser>().HashPassword(UnknownUser, Guid.NewGuid().ToString());
 
     private ActionResult ValidationError(string field, string message) =>
         ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]> { [field] = [message] }));

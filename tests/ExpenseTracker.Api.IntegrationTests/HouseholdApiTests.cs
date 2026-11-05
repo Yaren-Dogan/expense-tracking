@@ -121,6 +121,35 @@ public class HouseholdApiTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task A_removed_member_cannot_rejoin_with_the_code_they_already_know()
+    {
+        var (ayse, mehmet, household) = await Couple();
+        var mehmetId = (await mehmet.GetFromJsonAsync<MeResponse>("/api/account/me", TestClient.Json))!.Id;
+
+        var afterRemoval = await (await ayse.DeleteAsync($"/api/households/members/{mehmetId}")).Read<HouseholdDto>();
+        afterRemoval.InviteCode.Should().NotBe(household.InviteCode, "every member has seen the old code");
+        (await ayse.PostAsJsonAsync("/api/expenses", Expense(300, "ayrılıktan sonra"))).EnsureSuccessStatusCode();
+
+        (await mehmet.GetAsync($"/api/households/invites/{household.InviteCode}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await mehmet.PostAsJsonAsync("/api/households/join", new { code = household.InviteCode })).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await September(mehmet))!.Should().NotContain(e => e.Note == "ayrılıktan sonra");
+    }
+
+    [Fact]
+    public async Task A_household_everyone_has_left_cannot_be_joined_with_its_old_code()
+    {
+        var (ayse, mehmet, household) = await Couple();
+        (await ayse.PostAsJsonAsync("/api/expenses", Expense(500, "aile geçmişi"))).EnsureSuccessStatusCode();
+        (await mehmet.PostAsync("/api/households/leave", null)).EnsureSuccessStatusCode();
+        (await ayse.PostAsync("/api/households/leave", null)).EnsureSuccessStatusCode();
+
+        var stranger = await factory.ForNewUserAsync();
+        (await stranger.GetAsync($"/api/households/invites/{household.InviteCode}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await stranger.PostAsJsonAsync("/api/households/join", new { code = household.InviteCode })).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await September(stranger))!.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Invalid_invite_codes_are_rejected()
     {
         var client = await factory.ForNewUserAsync();

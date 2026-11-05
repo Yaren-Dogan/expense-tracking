@@ -32,7 +32,7 @@ gelince yeniler.
 | Görev verildi | Görevi alan (kendine verdiyse gitmez) | Yaren sana bir görev verdi: İnternet faturası · son gün 12 Ekim |
 | Son gün yaklaştı (≤ 3 gün, `Tasks:ReminderDaysBefore`) | Görevi alan | İnternet faturası için son gün yarın (12 Ekim) |
 | Son gün geçti | Görevi alan | İnternet faturası gecikti: son gün 12 Ekim idi |
-| Tamamlandı | Görevi veren ve (başkası yaptıysa) görevi alan | Ahmet tamamladı: İnternet faturası · ₺449,90 ödendi |
+| Tamamlandı | Görevi veren ve (başkası yaptıysa) görevi alan; ikisi de hâlâ defterdeyse | Ahmet tamamladı: İnternet faturası · ₺449,90 ödendi |
 | Üye ayrıldı | Kurucu | Ahmet haneden ayrıldı, görevi sana geçti: İnternet faturası · son gün 12 Ekim |
 
 - Hatırlatmaları arka plan işi (`TaskReminderScheduler`) açılışta ve saatte bir (`Tasks:ReminderIntervalMinutes`) üretir.

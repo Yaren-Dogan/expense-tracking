@@ -76,7 +76,14 @@ public class AccountApiTests(ApiFactory factory)
         var correct = await client.PostAsJsonAsync("/api/account/login", new { email = user.Email(), password = TestClient.Password });
 
         correct.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await correct.Read<ProblemDetails>()).Detail.Should().Contain("5 dakika");
+        var locked = await correct.Read<ProblemDetails>();
+        locked.Detail.Should().Contain("5 dakika");
+
+        // A distinct "locked" answer would confirm, after five tries, that the address has an account.
+        var unknown = await client.PostAsJsonAsync("/api/account/login", new { email = "nobody@test.local", password = "yanlis1234" });
+        var unknownProblem = await unknown.Read<ProblemDetails>();
+        locked.Title.Should().Be(unknownProblem.Title);
+        locked.Detail.Should().Be(unknownProblem.Detail);
     }
 
     [Fact]

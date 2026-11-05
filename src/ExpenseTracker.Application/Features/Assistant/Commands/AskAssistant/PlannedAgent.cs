@@ -128,10 +128,11 @@ internal sealed class PlannedAgent(IChatClient chatClient, AssistantTools tools,
 
     private static string ObservationsText(List<Observation> observations)
     {
-        var sb = new StringBuilder("Araç sonuçları:\n");
+        // Fenced, like the planner's other user data: notes in these results were written by household members.
+        var sb = new StringBuilder("<arac_sonuclari>\n");
         foreach (var o in observations)
             sb.Append("- ").Append(o.Call).Append(" => ").AppendLine(o.Result);
-        return sb.ToString();
+        return sb.Append("</arac_sonuclari>").ToString();
     }
 
     /// <param name="Summary">The tool's code-computed "özet" sentence, when it produced one.</param>
