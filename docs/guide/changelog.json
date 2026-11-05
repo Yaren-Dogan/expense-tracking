@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.9",
+    "date": "2026-11-05",
+    "title": "Güvenlik ve plan düzeltmeleri",
+    "items": [
+      "Anlamsal arama da diğer yapay zekâ özellikleri gibi kişi başına dakikada 20 istekle sınırlı; tek kullanıcı ortak model kotasını tüketemez.",
+      "Birikim planı iki üye aynı anda \"Planı uygula\" dese bile yalnızca bir kez uygulanır.",
+      "Planlayıcı, aylık birikim tutarı yuvarlanınca kısılabilecek tutarı aşıyorsa planı bir ay uzatır; gösterilen kesintiler hedefle uyumlu kalır.",
+      "Kılavuz düzeltmeleri: veritabanı diyagramında bildirim kolonu (subject_id), güncelleme komutu, model kotası açıklaması."
+    ]
+  },
+  {
     "version": "1.8",
     "date": "2026-10-05",
     "title": "Kişisel ↔ hane geçişi ve görev düzeltmeleri",

@@ -86,8 +86,10 @@ http://localhost:8081 adresinde şu bilgilerle giriş yap:
 | Password | `expense_dev` |
 | Database | `expense_tracker` |
 
-Tablolar: `expenses` (harcamalar), `budgets` (aylık bütçeler), `expense_embeddings` (arama vektörleri). Her kaydın `user_id` değeri,
-tarayıcıdaki `expense-tracker.user-id` (F12 → Application → Local Storage) ile eşleşir.
+Başlıca tablolar: `expenses` (harcamalar), `budgets` (aylık bütçeler), `tasks` (görevler), `notifications` (bildirimler),
+`month_reviews` ve `budget_plans` (ajan çıktıları), `expense_embeddings` (arama vektörleri). Her kayıt bir deftere aittir
+(`ledger_id`): kişisel defterde kullanıcının, hane defterinde hanenin kimliği. Her tablo ve kolonun Türkçe açıklaması
+Adminer'da "Yorum" sütununda görünür; tam liste kılavuzun veritabanı bölümünde.
 
 ### Geliştirme
 
@@ -132,6 +134,7 @@ göre filtrelenir. Hesaplardan önce bu tarayıcıda girilen veriler ilk kayıt/
 
 ## Claude ile çalışma
 
-`CLAUDE.md` proje kurallarını ve "bitti" tanımını içerir. `.claude/agents/` altında
-`architect`, `implementer` ve `reviewer` alt ajanları, `.claude/commands/review.md` altında
-`/review` komutu var.
+`CLAUDE.md` proje kurallarını ve "bitti" tanımını içerir. `.claude/agents/` altında yedi alt ajan var:
+`architect` (plan), `implementer` (kod + test), `tester` (`/test-plan`), `security-reviewer` (`/security-review`),
+`migration-checker` (`/check-migration`), `reviewer` (`/review`) ve `docs-keeper` (`/update-guide`).
+Önerilen sıra ve her ajanın görevi: [`docs/prd-insights.md`](docs/prd-insights.md) ve kılavuzun Ajanlar bölümü.

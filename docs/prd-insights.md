@@ -63,7 +63,8 @@ ne kadar kısılacağını ve aylık bütçeyi önerir. **Kullanıcı onaylamada
    - Hedef istenen sürede sığmıyorsa (esnek harcamaların yarısını aşıyorsa) süre uzatılır ve kullanıcıya söylenir; 24 ayı
      aşıyorsa `409`.
 4. **Uygulama:** "Planı uygula" → onay → planın başladığı aydan (planın yapıldığı ayın ertesi) itibaren her ayın bütçesi
-   yazılır (varsa değiştirilir). Bir kez uygulanır (`409`). Diğer hane üyelerine bildirim gider.
+   yazılır (varsa değiştirilir). Bir kez uygulanır (`409`); iki üye aynı anda uygularsa da tek uygulama geçer
+   (`applied_at` concurrency token), diğeri `409` alır. Diğer hane üyelerine bildirim gider.
 
 ## Endpoint'ler
 
@@ -75,7 +76,7 @@ ne kadar kısılacağını ve aylık bütçeyi önerir. **Kullanıcı onaylamada
 | `POST` | `/api/plans` | Plan iste: `goalAmount`, `months` (1-24), `purpose` (opsiyonel, en fazla 100) |
 | `POST` | `/api/plans/{id}/apply` | Planı uygula (bütçeleri yazar) |
 
-Model çağıran uçlar (`POST /api/reviews`, `POST /api/plans`, asistan, cümleyle harcama) kullanıcı başına dakikada
+Model çağıran uçlar (`POST /api/reviews`, `POST /api/plans`, asistan, cümleyle harcama, anlamsal arama) kullanıcı başına dakikada
 `RateLimits:AiPerMinute` (20) istekle sınırlıdır: tek kullanıcı herkesin paylaştığı model kotasını tüketemez.
 
 ## Kabul kriterleri

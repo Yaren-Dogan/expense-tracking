@@ -314,7 +314,7 @@ geliştirmede kullanılabilir; gerçek kişisel veri yerine örnek veriyle denem
 </ol>
 
 <h3>Güncelleme</h3>
-<pre>cd D:\Projects\expense-tracking
+<pre>cd expense-tracking
 git pull
 docker compose up -d --build</pre>
 <p>Veritabanı değişiklikleri (migration'lar) API açılırken otomatik uygulanır; veri kaybolmaz. Güncellemeden sonra eski ekran
@@ -478,7 +478,7 @@ aynı eşiklerle uygulanır. Geçmiş bir ay son gününden bakıldığı için 
   <tr><td>Şifre saklama</td><td>ASP.NET Core Identity, PBKDF2 hash. Şifre düz metin olarak hiçbir yerde tutulmaz. En az 8 karakter + rakam.</td></tr>
   <tr><td>Oturum</td><td>HttpOnly cookie: sayfa script'leri okuyamaz (XSS ile token çalınamaz). <code>SameSite=Strict</code> + sadece JSON kabul eden API: başka siteden istek (CSRF) çalışmaz. 14 gün, kayan süre.</td></tr>
   <tr><td>Kaba kuvvet</td><td>5 hatalı şifrede hesap 5 dk kilitlenir. Kayıt/giriş uçlarında IP başına, davet kodu uçlarında kullanıcı başına dakikada 10 istek.</td></tr>
-  <tr><td>Model kotası</td><td>Model çağıran uçlar (asistan, cümleyle ekleme, değerlendirme, plan) kullanıcı başına dakikada 20 istekle sınırlı; tek kullanıcı herkesin kotasını tüketemez.</td></tr>
+  <tr><td>Model kotası</td><td>Model çağıran uçlar (asistan, cümleyle ekleme, anlamsal arama, değerlendirme, plan) kullanıcı başına dakikada 20 istekle sınırlı; tek kullanıcı herkesin kotasını tüketemez.</td></tr>
   <tr><td>Oturum anahtarları</td><td>Cookie'leri şifreleyen anahtarlar veritabanında (<code>data_protection_keys</code>); güncellemeden sonra kimsenin oturumu kapanmaz.</td></tr>
   <tr><td>Kullanıcı keşfi</td><td>Bilinmeyen e-posta ve yanlış şifre aynı cevabı alır; kayıtlı adresler bulunamaz.</td></tr>
   <tr><td>Varsayılan kapalı</td><td>Her uç oturum ister (fallback policy). Açık olanlar sadece kayıt, giriş ve health.</td></tr>
@@ -806,13 +806,13 @@ adları <code>snake_case</code>. Toplam <b>{{tableCount}} tablo, {{columnCount}}
     <text x="482" y="184" class="c">ledger_id, series_id, due_on</text><text x="482" y="202" class="c">assignee_id, created_by_id</text>
     <text x="482" y="220" class="c">recurrence, completed_at</text><text x="482" y="238" class="c">expense_id, paid_amount</text></g>
   <g class="ent"><rect x="490" y="10" width="220" height="92" rx="10"/><text x="600" y="32" class="t">notifications</text>
-    <text x="502" y="54" class="c">user_id, task_id, kind (unique)</text><text x="502" y="72" class="c">message</text><text x="502" y="90" class="c">read_at</text></g>
+    <text x="502" y="54" class="c">user_id, subject_id, kind (unique)</text><text x="502" y="72" class="c">message</text><text x="502" y="90" class="c">read_at</text></g>
   <line x1="110" y1="84" x2="110" y2="128" class="rel"/><text x="118" y="110" class="s left">1 — n</text>
   <line x1="210" y1="160" x2="270" y2="90" class="rel"/>
   <line x1="410" y1="200" x2="468" y2="200" class="rel dash"/><text x="420" y="194" class="s left">expense_id</text>
   <line x1="330" y1="252" x2="330" y2="283" class="rel"/><text x="338" y="272" class="s left">1 — 1</text>
   <line x1="450" y1="60" x2="488" y2="60" class="rel"/>
-  <line x1="600" y1="102" x2="600" y2="138" class="rel dash"/><text x="608" y="124" class="s left">task_id</text>
+  <line x1="600" y1="102" x2="600" y2="138" class="rel dash"/><text x="608" y="124" class="s left">subject_id</text>
   <line x1="420" y1="102" x2="520" y2="140" class="rel dash"/>
 </svg>
 <figcaption>Mavi kenarlı tablolar <code>ledger_id</code> taşır: kişisel defterde kullanıcının, hane defterinde hanenin kimliği.
