@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { api, ApiError } from '../api/client'
 import type { Expense } from '../api/types'
 import { formatDayHeading, formatMoney, formatMonth } from '../lib/format'
 import { CATEGORY_LABELS } from '../lib/weather'
@@ -18,9 +20,33 @@ function groupByDay(expenses: Expense[]) {
 }
 
 export function ExpenseList({ month, expenses, meId, showAuthor, onDelete }: Props) {
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  async function exportCsv() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      await api.exportExpenses(month)
+    } catch (e) {
+      setExportError(e instanceof ApiError ? e.message : 'Dosya indirilemedi.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <section className="card" aria-labelledby="list-title">
-      <h2 id="list-title" className="card-title">{formatMonth(month)} harcamaları</h2>
+      <div className="card-head">
+        <h2 id="list-title" className="card-title">{formatMonth(month)} harcamaları</h2>
+        {expenses.length > 0 && (
+          <button type="button" className="link-button" onClick={() => void exportCsv()} disabled={exporting}
+            aria-label={`${formatMonth(month)} harcamalarını Excel için CSV olarak indir`}>
+            {exporting ? 'Hazırlanıyor…' : 'CSV indir'}
+          </button>
+        )}
+      </div>
+      {exportError && <p className="notice" role="alert">{exportError}</p>}
 
       {expenses.length === 0 ? (
         <p className="empty">Bu ayda harcama yok. Gökyüzü tertemiz.</p>

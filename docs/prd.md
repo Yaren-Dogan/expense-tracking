@@ -70,6 +70,7 @@ Tüm `/api` istekleri oturum ister; yoksa `401`. Hesap ve hane uçları: [`prd-a
 | Metot | Yol | Açıklama | Başarılı |
 | --- | --- | --- | --- |
 | `GET` | `/api/expenses?month=2026-09` | Ayın harcamaları, yeniden eskiye | `200` |
+| `GET` | `/api/expenses/export?month=2026-09` | Ayın harcamaları CSV olarak (Excel uyumlu) | `200` |
 | `POST` | `/api/expenses` | Harcama ekle. `Idempotency-Key` opsiyonel | `201` (tekrar: `200`) |
 | `DELETE` | `/api/expenses/{id}` | Harcama sil | `204` / `404` |
 | `GET` | `/api/budgets/{month}` | Ayın bütçesi | `200` / `404` |
@@ -86,6 +87,13 @@ Doğrulama hataları `400` + RFC 7807 `ProblemDetails` (alan bazlı `errors`).
 - Tarih: gelecekte olamaz (istemci tarihine 1 gün tolerans), 2000'den önce olamaz.
 - Bütçe: `0 < bütçe ≤ 10.000.000`. Ay formatı `yyyy-MM`.
 - `Idempotency-Key`: en fazla 100 karakter.
+
+### Dışa aktarma (CSV)
+
+Liste kartındaki **CSV indir** ile görüntülenen ayın harcamaları indirilir (`harcamalar-2026-09.csv`). Dosya Türkçe Excel'in
+sihirbazsız açacağı biçimdedir: UTF-8 + BOM, alan ayırıcı `;`, ondalık `,`, tarih `gg.aa.yyyy`, eskiden yeniye. Kolonlar:
+Tarih, Kategori (Türkçe), Tutar (TL), Not, Giren. Aktif deftere göre filtrelenir (kişisel defterdeyken kişisel harcamalar).
+`=`, `+`, `-`, `@` ile başlayan notların başına `'` eklenir: elektronik tabloda formül olarak çalışmasınlar (CSV injection).
 
 ### Idempotency
 

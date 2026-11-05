@@ -2,6 +2,7 @@ using ExpenseTracker.Api.Contracts;
 using ExpenseTracker.Application.Features.Expenses;
 using ExpenseTracker.Application.Features.Expenses.Commands.CreateExpense;
 using ExpenseTracker.Application.Features.Expenses.Commands.DeleteExpense;
+using ExpenseTracker.Application.Features.Expenses.Queries.ExportExpenses;
 using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Application.Features.Expenses.Queries.ListExpenses;
 using ExpenseTracker.Application.Features.Expenses.Queries.ParseExpense;
@@ -19,6 +20,14 @@ public sealed class ExpensesController(ISender mediator) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ExpenseDto>>> List([FromQuery] string? month, CancellationToken ct) =>
         Ok(await mediator.Send(new ListExpensesQuery(month), ct));
+
+    /// <summary>The month's expenses as a CSV download (Excel, Google Sheets).</summary>
+    [HttpGet("export")]
+    public async Task<IActionResult> Export([FromQuery] string month, CancellationToken ct)
+    {
+        var file = await mediator.Send(new ExportExpensesQuery(month), ct);
+        return File(file.Content, "text/csv; charset=utf-8", file.FileName);
+    }
 
     [HttpPost]
     public async Task<ActionResult<ExpenseDto>> Create(
