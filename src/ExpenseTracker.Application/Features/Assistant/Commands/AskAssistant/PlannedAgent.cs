@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using ExpenseTracker.Application.Common.Ai;
+using ExpenseTracker.Application.Features.Insights;
 using Microsoft.Extensions.AI;
 
 namespace ExpenseTracker.Application.Features.Assistant.Commands.AskAssistant;
@@ -94,17 +95,25 @@ internal sealed class PlannedAgent(IChatClient chatClient, AssistantTools tools,
             : await FreeTextAnswerAsync(today, conversation, observations, ct);
     }
 
-    /// <summary>No numbers to protect (a greeting, or a tool error): let the model reply in its own words.</summary>
+    /// <summary>
+    /// No code-computed facts to report (a greeting, or a tool error): the model may reply in its own words, but under the
+    /// same rule as the other agents. A number in its text could only be invented, and a link could come from an expense
+    /// note; either one means a fixed reply is used instead.
+    /// </summary>
     private async Task<string> FreeTextAnswerAsync(
         DateOnly today, IReadOnlyList<ChatMessage> conversation, List<Observation> observations, CancellationToken ct)
     {
         List<ChatMessage> messages = [new(ChatRole.System, AssistantPrompt.System(today)), .. conversation];
         messages.Add(new ChatMessage(ChatRole.User, observations.Count == 0
-            ? "Bu soru için veri gerekmiyor. Kısaca cevap ver."
-            : ObservationsText(observations) + "\nAraçlar bir hata döndürdü. Kullanıcıya kısaca ne olduğunu ve soruyu nasıl sorabileceğini söyle."));
+            ? "Bu soru için veri gerekmiyor. Kısaca cevap ver. Rakam ya da bağlantı yazma."
+            : ObservationsText(observations) + "\nAraçlar bir hata döndürdü. Kullanıcıya kısaca ne olduğunu ve soruyu nasıl sorabileceğini söyle. Rakam ya da bağlantı yazma."));
 
         var response = await chatClient.GetResponseAsync(messages, new ChatOptions { Temperature = 0.2f }, ct);
-        return response.Text.Trim();
+        var text = response.Text.Trim();
+        if (ModelText.IsUsable(text))
+            return text;
+
+        return observations.Count == 0 ? AssistantPrompt.GreetingFallback : AssistantPrompt.ToolErrorFallback;
     }
 
     private Task<object> ExecuteAsync(AgentStep plan, CancellationToken ct) => plan.Action switch

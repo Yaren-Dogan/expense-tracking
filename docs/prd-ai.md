@@ -95,6 +95,9 @@ Tasarım kararları:
 - **Araç hataları metin döner.** Geçersiz tarih aralığında exception yerine açıklama döner; model düzeltip tekrar dener.
 - **Prompt injection savunması.** Sistem prompt'u harcama notlarını talimat değil veri olarak ele almasını söyler;
   araçlar zaten salt okunur ve kullanıcıya kapsamlı olduğu için etki alanı sınırlıdır.
+- **Serbest metin de denetlenir.** Araç sonucu olmayan cevaplarda (selamlaşma, araç hatası) model kendi cümlesini
+  yazar; bu metin rakam ya da bağlantı içeriyorsa (`ModelText.IsUsable`) sabit bir cevap kullanılır. Araç sonucu yoksa
+  bir rakam ancak uydurulmuş olabilir.
 - **Şeffaflık.** Cevapla birlikte kullanılan araçların adları döner; arayüz bunları gösterir.
 - **Sunucu durumsuz.** Sohbet geçmişi istemcide tutulur, her istekte en fazla 20 mesaj gönderilir.
 
