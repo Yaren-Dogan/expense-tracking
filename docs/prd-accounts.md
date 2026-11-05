@@ -6,6 +6,7 @@ Ana PRD: [`prd.md`](prd.md). Bu doküman MVP'deki "kimlik doğrulama yok" sını
 
 - E-posta + şifre + görünen ad ile kayıt; e-posta + şifre ile giriş; çıkış.
 - **ASP.NET Core Identity:** Şifreler PBKDF2 ile hash'lenir, düz metin saklanmaz. 5 hatalı denemede hesap 5 dakika kilitlenir.
+  Kilitli hesap, yanlış şifre ve kayıtlı olmayan e-posta aynı cevabı alır; kilit mesajı bir adresin kayıtlı olduğunu ele vermez.
 - **Oturum, HttpOnly cookie ile tutulur.** JavaScript cookie'yi okuyamaz (XSS'te token çalınamaz). `SameSite=Strict` ve
   JSON-only API, başka siteden istek atılmasını (CSRF) engeller. Web ve API aynı origin'den (nginx) sunulur.
 - Şifre: en az 8 karakter, en az bir rakam.
@@ -64,6 +65,8 @@ Bu model sayesinde:
 | Herkes tüm hane harcamalarını görür, **sadece kendi girdiğini siler** (başkasınınki `403`) | Kazara/kasıtlı silmeye karşı |
 | Bütçeyi her üye değiştirebilir | Ortak karar |
 | Kurucu: üye çıkarabilir, davet kodunu yenileyebilir | Kod sızarsa iptal edilebilsin |
+| Üye çıkarılınca davet kodu kendiliğinden yenilenir | Çıkarılan kişi bildiği kodla geri katılamasın |
+| Herkesin ayrıldığı haneye eski kodla katılınamaz, önizleme de `404` | Eski kodu gören biri ailenin geçmişine ulaşmasın |
 | Kurucu ayrılırsa kuruculuk en eski üyeye geçer | Hane sahipsiz kalmasın |
 | Davet kodu önizleme/katılma uçlarında kullanıcı başına dakikada 10 istek | Kod tahminine karşı |
 | Davet kodu: karışan karakterler (0/O, 1/I/L) olmadan 8 karakter, ~10¹² olasılık | Okunabilir ve tahmin edilemez |

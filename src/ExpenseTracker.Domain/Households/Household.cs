@@ -32,6 +32,8 @@ public sealed class Household : Entity
 
     public void Join(Guid userId, DateTimeOffset now)
     {
+        if (!IsOpen)
+            throw new DomainException("Nobody is in this household any more.");
         if (IsMember(userId))
             throw new DomainException("Already a member of this household.");
         if (_members.Count >= MaxMembers)
@@ -52,7 +54,11 @@ public sealed class Household : Entity
             _members.OrderBy(m => m.JoinedAt).First().Role = HouseholdRole.Owner;
     }
 
-    public void RemoveMember(Guid ownerUserId, Guid memberUserId)
+    /// <summary>
+    /// Removes a member and retires the invite code: every member has seen it, so keeping it would let the removed person
+    /// join straight back and read everything the household writes afterwards.
+    /// </summary>
+    public void RemoveMember(Guid ownerUserId, Guid memberUserId, string newInviteCode)
     {
         if (!IsOwner(ownerUserId))
             throw new DomainException("Only the owner can remove members.");
@@ -60,7 +66,14 @@ public sealed class Household : Entity
             throw new DomainException("The owner leaves instead of removing themselves.");
 
         Leave(memberUserId);
+        ReplaceInviteCode(ownerUserId, newInviteCode);
     }
+
+    /// <summary>
+    /// A household nobody is in any more cannot be joined: there is no owner to manage the code, and an old code (seen by
+    /// former members, or pasted in a group chat) would otherwise open the family's whole history to whoever finds it.
+    /// </summary>
+    public bool IsOpen => _members.Count > 0;
 
     public void ReplaceInviteCode(Guid ownerUserId, string inviteCode)
     {

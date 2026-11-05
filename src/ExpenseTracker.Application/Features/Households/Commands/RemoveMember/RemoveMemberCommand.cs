@@ -1,6 +1,7 @@
 using ExpenseTracker.Application.Common.Exceptions;
 using ExpenseTracker.Application.Common.Interfaces;
 using ExpenseTracker.Application.Features.Tasks;
+using ExpenseTracker.Domain.Households;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -23,9 +24,9 @@ public sealed class RemoveMemberCommandHandler(
         if (!household.IsMember(request.MemberUserId))
             throw new NotFoundException("Bu kişi hanede değil.");
 
-        household.RemoveMember(user.UserId, request.MemberUserId);
+        household.RemoveMember(user.UserId, request.MemberUserId, InviteCode.New());
         await db.HandOverOpenTasksAsync(household, request.MemberUserId, users, logger, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        await db.SaveWithUniqueRetryAsync(household, user.UserId, cancellationToken);
 
         logger.LogInformation("User {MemberId} removed from household {HouseholdId} by {OwnerId}", request.MemberUserId, household.Id, user.UserId);
         return await household.ToDtoAsync(user.UserId, users, cancellationToken);

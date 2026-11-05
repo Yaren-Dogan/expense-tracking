@@ -63,8 +63,10 @@ public sealed class CompleteTaskCommandHandler(
 
         var people = await LedgerPeople.LoadAsync(db, user, users, cancellationToken, [task.AssigneeId, task.CreatedById]);
         var message = TaskMessages.Completed(people.NameOf(userId), task);
-        // Tell whoever else is involved: the person who asked for it, and the assignee if someone did it for them.
-        foreach (var recipient in new[] { task.CreatedById, task.AssigneeId }.Distinct().Where(id => id != userId))
+        // Tell whoever else is involved: the person who asked for it, and the assignee if someone did it for them. Only
+        // people still sharing this ledger: a giver who has left keeps no window onto the household's bills and payments.
+        foreach (var recipient in new[] { task.CreatedById, task.AssigneeId }.Distinct()
+                     .Where(id => id != userId && people.Members.Contains(id)))
             db.Notifications.Add(Notification.Create(recipient, NotificationKind.TaskCompleted, task.Id, message));
 
         try

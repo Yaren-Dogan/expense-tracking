@@ -21,8 +21,9 @@ public sealed class PreviewInviteQueryHandler(IAppDbContext db, IUserDirectory u
     {
         var code = InviteCode.Normalize(request.Code);
         var household = await db.Households.AsNoTracking().Include(h => h.Members)
-            .SingleOrDefaultAsync(h => h.InviteCode == code, cancellationToken)
-            ?? throw new NotFoundException("Bu davet kodu geçerli değil.");
+            .SingleOrDefaultAsync(h => h.InviteCode == code, cancellationToken);
+        if (household is null || !household.IsOpen)
+            throw new NotFoundException("Bu davet kodu geçerli değil.");
 
         var names = await users.GetDisplayNamesAsync(household.Members.Select(m => m.UserId), cancellationToken);
         var memberNames = household.Members.OrderBy(m => m.JoinedAt).Select(m => names.GetValueOrDefault(m.UserId) ?? "?").ToList();

@@ -26,8 +26,10 @@ public sealed class JoinHouseholdCommandHandler(
 
         var code = InviteCode.Normalize(request.Code);
         var household = await db.Households.Include(h => h.Members)
-            .SingleOrDefaultAsync(h => h.InviteCode == code, cancellationToken)
-            ?? throw new NotFoundException("Bu davet kodu geçerli değil.");
+            .SingleOrDefaultAsync(h => h.InviteCode == code, cancellationToken);
+        // An emptied household answers like an unknown code: its old code must not open the history it left behind.
+        if (household is null || !household.IsOpen)
+            throw new NotFoundException("Bu davet kodu geçerli değil.");
 
         if (household.Members.Count >= Household.MaxMembers)
             throw new ConflictException($"Bu hane dolu (en fazla {Household.MaxMembers} kişi).");

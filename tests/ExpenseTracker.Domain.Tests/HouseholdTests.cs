@@ -50,10 +50,10 @@ public class HouseholdTests
         h.Join(Mehmet, T0.AddDays(1));
         h.Join(Can, T0.AddDays(2));
 
-        ((Action)(() => h.RemoveMember(Mehmet, Can))).Should().Throw<DomainException>();
+        ((Action)(() => h.RemoveMember(Mehmet, Can, "NEWCODE2"))).Should().Throw<DomainException>();
         ((Action)(() => h.ReplaceInviteCode(Mehmet, InviteCode.New()))).Should().Throw<DomainException>();
 
-        h.RemoveMember(Ayse, Can);
+        h.RemoveMember(Ayse, Can, "NEWCODE2");
         h.IsMember(Can).Should().BeFalse();
     }
 

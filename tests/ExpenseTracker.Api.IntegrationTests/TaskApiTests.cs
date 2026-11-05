@@ -67,6 +67,20 @@ public class TaskApiTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task A_giver_who_was_removed_hears_nothing_more_about_the_household()
+    {
+        var f = await Doganlar();
+        var rent = await CreateTask(f.Ahmet, "Kira", f.YarenId, "2026-10-05", recurrence: "Monthly");
+        (await f.Yaren.DeleteAsync($"/api/households/members/{f.AhmetId}")).EnsureSuccessStatusCode();
+        (await f.Ahmet.PostAsync("/api/notifications/read", null)).EnsureSuccessStatusCode();
+
+        (await f.Yaren.PostAsJsonAsync($"/api/tasks/{rent.Id}/complete", new { amount = 15000 })).EnsureSuccessStatusCode();
+
+        (await Notifications(f.Ahmet))!.Items.Should().NotContain(n => n.Kind == NotificationKind.TaskCompleted,
+            "a former member must not keep receiving the household's bills and payments");
+    }
+
+    [Fact]
     public async Task Tasks_can_only_go_to_people_in_the_household_and_stay_inside_it()
     {
         var f = await Doganlar();
